@@ -1,0 +1,4 @@
+﻿qid,question,q_type,source,gold_doc_ids,gold_text,memo
+G001,3분기 DRAM 계약가격 전망은?,수치,BROKER,BRK_20260912_0031,3분기 DRAM 계약가격은 전분기 대비 8% 상승,예시 행 — 정답 문서가 여럿이면 ; 로 구분
+G002,마이크론 히로시마 HBM 증설 투자 규모는?,사실,NEWS,NEWS_0915_0012;NEWS_0915_0044,투자 규모는 약 5조원,재송고 기사 둘 다 정답
+G003,TSMC의 지난 분기 DRAM 출하량은?,답없음,-,,,답 없는 문항은 gold_doc_ids 를 비워 둔다

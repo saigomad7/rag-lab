@@ -1,0 +1,12 @@
+# 필수
+pandas
+numpy
+openpyxl
+# 사내 연결 (live 모드)
+oracledb          # Oracle
+pymilvus          # Milvus
+requests          # 임베딩 · 리랭커 · LLM · 기존 검색 API (HTTP)
+# 선택 — 있으면 쓰고 없으면 대체 동작
+FlagEmbedding     # BGE-M3 · bge-reranker 로컬 실행 (EMBED_MODE/RERANK_MODE=local)
+transformers      # BGE-M3 토크나이저로 정확한 토큰 수 (없으면 근사)
+kiwipiepy         # 한국어 형태소 BM25 (없으면 조사 제거 근사)

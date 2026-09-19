@@ -1,0 +1,7 @@
+# 비밀값 · 실행 결과 · 캐시
+.env
+out/
+__pycache__/
+*.pyc
+.spyproject/
+.ipynb_checkpoints/
