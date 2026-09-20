@@ -15,6 +15,9 @@ Oracle(원문·청크) → BGE-M3 → Milvus → 하이브리드 검색(BM25 + D
 | `nb04_milvus.py` | Milvus 스키마·인덱스·필수 필드, Oracle과 건수 정합성, 필터 검색 |
 | `nb05_smoke_test.py` | 스모크 20문항 실행 → 판정용 엑셀 → 실패 유형 집계 |
 | `nb06_retrieval_eval.py` | 골든셋으로 BM25 / Dense / Sparse / Hybrid / +Rerank / +MMR 비교 |
+| `nb07_sql_router.py` | **정형 데이터 연계(Phase 3)** — 지표 카탈로그 · 질의 라우팅 · SQL 생성/정적검증/실행 · 결합 · 실행결과 정확도 |
+
+정형 연계(nb07)는 `catalog/metric_catalog.xlsx`(지표 정의서)를 채운 뒤 씁니다. 예시 파일이 함께 들어 있고, 샘플 모드에서는 SQLite 샘플 DB로 SQL 이 실제로 돕니다.
 
 설치 · 설정 · 셀별 설명은 **[USAGE.md](USAGE.md)** 를 봅니다.
 

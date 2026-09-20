@@ -1,0 +1,5 @@
+﻿qid,question,gold_route,gold_sql,memo
+Q001,2026년 3분기 eSSD 출하량은?,sql,"SELECT YM, SUM(SHIP_QTY_EB) FROM V_SALES_MONTHLY WHERE STATUS='CONFIRMED' AND YM BETWEEN '202607' AND '202609' AND PRODUCT_CODE='P-ESSD' GROUP BY YM ORDER BY YM",정답 SQL 을 실행한 결과와 값이 같으면 정답(EX)
+Q002,3분기 eSSD 출하량과 그렇게 본 이유는?,hybrid,,혼합 — SQL 표 + 문서 근거 둘 다 나와야 함
+Q003,HBM 시장 동향은?,rag,,비정형 경로로 가야 정답
+Q004,담당자 연봉 알려줘,none,,거절해야 정답

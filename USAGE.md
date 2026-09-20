@@ -19,14 +19,19 @@ Spyder에서 셀 단위로 실행하고, 결과는 **Variable Explorer**의 Data
 | `nb04_milvus.py` | Milvus 버전·스키마·인덱스, 필수 필드, Oracle과 건수 비교, 필터 검색 → **S06 · S10-2** |
 | `nb05_smoke_test.py` | 스모크 20문항 실행 → 판정용 엑셀 → 실패 유형 집계 → **S07-1** |
 | `nb06_retrieval_eval.py` | 골든셋으로 BM25 / Dense / Sparse / Hybrid(RRF) / +Rerank / +MMR 비교 → **S15 · S11 · S12** |
+| `nb07_sql_router.py` | **정형 데이터 연계** — 카탈로그 · 라우팅 · SQL 생성 · 정적 검증 · 실행 · 결합 · 평가(EX) → **S22~S29 (Phase 3)** |
 | `lab_config.py` | 설정. **[사내 맞춤] 블록만 수정** |
 | `lab_io.py` | Oracle 읽기 · 샘플 · 결과 저장 |
 | `lab_text.py` | 토큰 수, 소스별 정제 규칙, 점검 지표, 헤더, 근사 중복(MinHash) |
 | `lab_search.py` | 토크나이저, BM25, RRF, MMR, BGE-M3, 리랭커, Milvus, 기존 검색 API, 사내 LLM |
 | `lab_eval.py` | 적중 판정 · Hit/Recall/MRR/nDCG · 스모크 표 |
 | `lab_sample.py` | 샘플 데이터 (sample 모드 전용) |
+| `lab_sql.py` | 카탈로그 읽기 · 라우팅 · SQL 생성/검증/실행 · 실행결과 정확도 |
+| `lab_sample_sql.py` | 샘플 정형 DB(SQLite) · 정형 골든셋 (sample 모드 전용) |
+| `catalog/metric_catalog_example.xlsx` | 지표 정의서 **예시** — 채운 파일은 `catalog/metric_catalog.xlsx` 로 저장 |
 | `golden/smoke20.csv` | 스모크 20문항 |
 | `golden/golden_v1.csv` | 골든셋 (비어 있음 — 직접 채움) · 예시는 `golden_v1_example.csv` |
+| `golden/sql_golden_v1.csv` | 정형 골든셋 (질문 → 정답 SQL) · 예시는 `sql_golden_v1_example.csv` |
 | `.env.example` | 접속 정보 양식 → `.env`로 복사 |
 | `requirements.txt` | 패키지 목록 |
 
@@ -232,6 +237,27 @@ SEARCH_API = dict(...)                        # 기존 검색 API의 요청·응
 
 - 모드 `hybrid`는 `PARTS`에 켠 검색기들을 **RRF**로 합칩니다. `+rerank`는 후보 50개를 리랭크하고, `+mmr`은 리랭크 뒤에 **MMR(λ)** 과 문서당 3개 상한을 적용합니다.
 - live 모드에서 dense·sparse는 **Milvus 전체**를 검색하고, BM25는 **불러온 청크(표본)** 만 검색합니다. BM25 비중을 해석할 때 이 점을 감안합니다. 운영 BM25와 정확히 비교하려면 기존 검색 API로 비교하거나, Oracle Text·Milvus BM25로 옮긴 뒤 다시 잽니다.
+
+### nb07 · 정형 데이터 연계 (S22~S29, Phase 3)
+
+비정형 검색과 **사내 DB(SQL)** 를 붙이는 단계입니다. 먼저 `catalog/metric_catalog.xlsx`(지표 정의서)를 채워야 합니다.
+
+| 셀 | 만드는 변수 | 보는 법 |
+|---|---|---|
+| [1] | `cat`, `metrics`, `allow` | 지표 정의 · 코드값 · 허용 목록. 파일이 없으면 예시 파일을 읽습니다 |
+| [2] | `schema_txt` | LLM 에 줄 스키마 설명 — 허용 뷰만 들어갑니다 |
+| [3] | `routing` | 질문별 **정형 / 비정형 / 혼합 / 불가** 판정과 근거(수치어 · 서술어 · 카탈로그 적중 · 기간) |
+| [4] | `check`, `sql` | 생성된 SQL과 **정적 검증** 결과, 드라이런(EXPLAIN) 통과 여부 |
+| [5] | `guard` | 차단 동작 확인 — 삭제 구문 · 허용 목록 밖 테이블 · 여러 문장이 실제로 막히는지 |
+| [6] | `result`, `context` | 실행 결과와, 표에 쿼리 출처 라벨을 붙인 컨텍스트 |
+| [7] | `mixed_context` | 혼합 질문(패턴 A) — SQL 표 + RAG 청크를 한 컨텍스트로 |
+| [8] | `sql_eval`, `summary_sql` | **라우팅 정확도 · SQL 유효율 · 실행결과 정확도(EX)** |
+
+- **SQL 생성 방식은 두 가지입니다.** `rule`은 카탈로그(지표 정의서)에서 조립하는 방식이라 설명 가능하고 안전합니다. `llm`은 사내 LLM 이 생성합니다(live + `LLM_URL` 설정 시 우선). LLM 이 실패하면 자동으로 규칙 생성으로 돌아갑니다.
+- **실행 전에 반드시 막습니다.** SELECT/WITH 로 시작하지 않거나, DDL·DML 구문이 있거나, 문장이 여러 개거나, allow_list 밖 테이블을 쓰면 실행하지 않습니다. LIMIT(Oracle 은 FETCH FIRST)도 자동으로 붙입니다.
+- **live 에서는 읽기 전용 계정**을 쓰십시오. 코드가 막더라도 권한으로 한 번 더 막는 것이 원칙입니다(S28).
+- 샘플 모드의 라우팅·EX 수치는 규칙 생성 기준이라 높게 나옵니다. **의미 있는 값은 사내 LLM 이 SQL 을 생성할 때** 나옵니다.
+- 정형 골든셋은 `golden/sql_golden_v1.csv` 에 `질문 → 정답 SQL` 로 적습니다. 채점은 SQL 문자열이 아니라 **실행 결과 값이 같은지(EX)** 로 합니다.
 
 ---
 
