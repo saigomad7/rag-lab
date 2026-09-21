@@ -1,0 +1,177 @@
+<!DOCTYPE html><html lang="ko"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>질의 흐름 · 비정형 + 정형</title><style>
+:root{--ink:#111B1E;--ink2:#2A393D;--muted:#5B6A6E;--faint:#87959A;--bg:#D8E0E1;--surface:#F7FAFA;--surface2:#ECF2F2;
+ --line:#BFCACB;--hair:#D9E2E2;--pri:#185463;--pri-wash:#DAEAED;--warn-wash:#F5EAD0;--warn-line:#DCC79B;--warn-ink:#5C440C;
+ --dk:#111B1E;--dk-h:#F3F9FA;--dk-sd:#8FA1A5;--mono:Consolas,"D2Coding","SFMono-Regular",monospace;
+ --sans:"IBM Plex Sans KR","Pretendard","Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:15px;line-height:1.7;padding:0 18px 70px}
+.wrap{max-width:1080px;margin:0 auto}
+header{padding:46px 0 24px;border-bottom:2px solid var(--ink)}
+.kicker{font-family:var(--mono);font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--pri);margin:0 0 14px}
+h1{font-size:clamp(23px,4vw,34px);font-weight:700;letter-spacing:-.03em;line-height:1.25;margin:0 0 14px}
+.qbox{background:var(--dk);color:var(--dk-h);border-radius:3px;padding:18px 20px;margin:18px 0 0}
+.qbox small{display:block;color:var(--dk-sd);font-family:var(--mono);font-size:11px;letter-spacing:.1em;margin-bottom:6px}
+.qbox b{font-size:clamp(15px,2.2vw,19px);font-weight:600}
+.meta{display:flex;flex-wrap:wrap;gap:6px 20px;font-family:var(--mono);font-size:11.5px;color:var(--muted);margin-top:14px}
+h2{font-size:20px;font-weight:600;letter-spacing:-.02em;margin:34px 0 10px}
+p.d{color:var(--ink2);margin:0 0 12px;max-width:76ch}
+.step{background:var(--surface);border:1px solid var(--line);border-radius:3px;margin:12px 0}
+.sh{display:flex;gap:10px;align-items:baseline;background:var(--surface2);border-bottom:1px solid var(--hair);padding:9px 14px;flex-wrap:wrap}
+.sh .n{font-family:var(--mono);font-size:11px;font-weight:700;color:#fff;background:var(--pri);border-radius:2px;padding:1px 8px}
+.sh b{font-size:15px}
+.sh span{font-family:var(--mono);font-size:11px;color:var(--faint);margin-left:auto}
+.kv{padding:10px 14px}
+.kv div{display:grid;grid-template-columns:82px 1fr;gap:10px;padding:3px 0;font-size:13.5px;color:var(--ink2)}
+.kv div b:first-child{color:var(--pri)}
+.kv code{font-family:var(--mono);font-size:12px;background:var(--surface2);border:1px solid var(--hair);padding:0 4px;border-radius:2px}
+pre{margin:0;padding:12px 14px;font-family:var(--mono);font-size:12px;line-height:1.6;white-space:pre-wrap;word-break:break-word;border-top:1px solid var(--hair)}
+pre.sql{background:#0F2A31;color:#D2E0E2} pre.sql::before{content:"정형 · SQL 과 결과";display:block;color:#85CEDB;font-size:10px;letter-spacing:.1em;margin-bottom:6px}
+pre.doc{background:#14212B;color:#D6E2EA} pre.doc::before{content:"비정형 · 검색된 청크";display:block;color:#8FC2DB;font-size:10px;letter-spacing:.1em;margin-bottom:6px}
+pre.ans{background:#13251C;color:#DCEBE1} pre.ans::before{content:"최종 답변";display:block;color:#8FD3B4;font-size:10px;letter-spacing:.1em;margin-bottom:6px}
+.note{background:var(--warn-wash);border:1px solid var(--warn-line);border-radius:3px;padding:14px 18px;margin:20px 0 0;font-size:13.5px;color:var(--warn-ink)}
+.note b{font-weight:600}
+footer{padding:36px 0 0;font-family:var(--mono);font-size:11px;color:var(--faint)}
+h3{font-size:16px;margin:26px 0 8px;color:var(--pri)}
+.tw{overflow-x:auto;border:1px solid var(--line);border-radius:3px;background:var(--surface);margin:10px 0}
+table{border-collapse:collapse;width:100%;min-width:720px;font-size:12.5px}
+th{background:var(--dk);color:#E4EDEE;text-align:left;font-family:var(--mono);font-size:10.5px;letter-spacing:.08em;padding:8px 10px;white-space:nowrap;font-weight:500}
+td{padding:8px 10px;border-top:1px solid var(--hair);vertical-align:top;color:var(--ink2);line-height:1.55}
+td.k{font-weight:600;color:var(--ink);white-space:nowrap}
+td.m{font-family:var(--mono);font-size:11.5px;white-space:nowrap}
+tr:nth-child(even) td{background:var(--surface2)}
+.good,.bad{border-radius:3px;padding:10px 12px;font-size:13px;margin:6px 0}
+.good{background:#E8F2E8;border:1px solid #9CC29C} .bad{background:#F8E1E1;border:1px solid #D9A8B0}
+.good b{color:#2C5F2C} .bad b{color:#8C2F3E}
+.good code,.bad code{font-family:var(--mono);font-size:11.5px;background:#fff;border:1px solid var(--hair);padding:0 4px;border-radius:2px}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.ck{list-style:none;margin:8px 0;padding:0}
+.ck li{padding:5px 0 5px 24px;position:relative;font-size:13.5px;color:var(--ink2)}
+.ck li::before{content:"☐";position:absolute;left:0;color:var(--pri);font-size:15px}
+@media (max-width:640px){ body{padding:0 12px 50px} .kv div{grid-template-columns:1fr;gap:0} .sh span{margin-left:0;width:100%} .two{grid-template-columns:1fr} table{min-width:560px} }
+
+.flowsec{padding:14px 14px 4px}
+.flowsec h3{margin:18px 0 6px;font-size:15px;color:var(--pri)}
+.flowsec .lead{margin:0 0 10px;color:#404040;font-size:13px;line-height:1.6;max-width:80ch}
+.fcard{border:1px solid var(--grid);background:#fff;margin:14px 0 18px}
+.fcard .fh{display:flex;gap:10px;align-items:baseline;flex-wrap:wrap;background:var(--hd2);padding:7px 10px;border-bottom:1px solid var(--grid)}
+.fcard .fh b{font-size:14px;color:var(--pri)} .fcard .fh span{font-size:11.5px;color:var(--mut);font-family:var(--mono)}
+.fcard .fig{padding:10px 8px 4px}
+.fcard .fig svg{display:block;width:100%;height:auto}
+.flowsec table{min-width:0!important;width:100%;table-layout:auto}
+.fcard td{font-size:12.5px}
+.fcard td.k{width:120px;background:#F7FAFA;font-weight:600;color:#333;white-space:nowrap}
+.fcard td.j{color:#1F4E79;width:36%}
+.chunk{margin:0;padding:8px 10px;background:#0F2A31;color:#D2E0E2;font-family:var(--mono);font-size:11.5px;line-height:1.55;white-space:pre-wrap;word-break:break-all;border-top:1px solid var(--grid)}
+.chunk::before{content:"청크 예시";display:block;color:#85CEDB;font-size:10px;letter-spacing:.1em;margin-bottom:3px}
+.fcard .fig svg.vflow{display:none}
+.fb-in{fill:#F2F2F2;stroke:#BFBFBF;stroke-width:1.2}
+.fb-norm{fill:#fff;stroke:#BFBFBF;stroke-width:1.2}
+.fb-key{fill:var(--pri-wash);stroke:var(--pri);stroke-width:1.8}
+.fb-rm{fill:#F8E1E1;stroke:#D9A8B0;stroke-width:1.2}
+.fb-out{fill:#E2F0D9;stroke:#8DB47A;stroke-width:1.2}
+.ft{font-family:var(--sans);font-weight:700;fill:#1F1F1F;text-anchor:middle}
+.fs{font-family:var(--sans);fill:#595959;text-anchor:middle}
+.fl{stroke:#8C8C8C;stroke-width:1.4;fill:none} .fa{fill:#8C8C8C}
+.flegend{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:12px;color:var(--mut);margin:4px 0 8px}
+.flegend i{display:inline-block;width:14px;height:10px;border:1px solid #BFBFBF;vertical-align:-1px;margin-right:4px}
+.pre-t td.k{width:170px}
+@media (max-width:640px){
+ .fcard .fig svg.hflow{display:none} .fcard .fig svg.vflow{display:block;max-width:100%;margin:0 auto}
+ .fcard table,.fcard tbody,.fcard tr,.fcard td{display:block;width:auto!important}
+ .fcard tr.hdr{display:none}
+ .fcard tr{border-top:2px solid var(--grid);padding:4px 0}
+ .fcard td{border:0;padding:2px 10px;white-space:normal!important}
+ .fcard td::before{content:attr(data-l);display:block;font-family:var(--mono);font-size:10px;color:var(--mut);letter-spacing:.08em}
+ .fcard td.k{background:none;color:var(--pri)} .fcard td.k::before{display:none}
+ .flowsec{padding:10px 8px 4px}
+}
+</style></head><body><div class="wrap"><header><p class="kicker">Query Walkthrough · 비정형 + 정형</p>
+<h1>질의 하나가 도는 길 — 문서와 DB를 함께 쓰는 경우</h1>
+<div class="qbox"><small>마케팅 담당자 질문</small><b>3분기 eSSD 계약가격이 오른 이유가 뭐야? 우리 출하량은 어떻게 됐고?</b></div>
+<div class="meta"><span>판정 · 혼합(hybrid)</span><span>정형 · V_PRICE_MONTHLY · V_SALES_MONTHLY</span><span>비정형 · 증권사 · 뉴스 · 회의록</span><span>2026-09-20</span></div></header>
+<h2>전체 흐름</h2>
+<p class="d">숫자를 묻는 부분과 이유를 묻는 부분이 한 질문에 같이 있습니다. 라우팅이 이를 <b>혼합</b>으로 판정하면 두 경로가 동시에 돌고, 결과를 하나의 컨텍스트로 합쳐 답변합니다.</p>
+<div class="flegend" style="display:flex;gap:14px;flex-wrap:wrap;font-size:12px;color:var(--muted)"><span><i style="display:inline-block;width:14px;height:10px;background:#F2F2F2;border:1px solid #BFBFBF;margin-right:4px"></i>입력</span><span><i style="display:inline-block;width:14px;height:10px;background:var(--pri-wash);border:1px solid var(--pri);margin-right:4px"></i>핵심 처리</span><span><i style="display:inline-block;width:14px;height:10px;background:#E2F0D9;border:1px solid #8DB47A;margin-right:4px"></i>경로 · 산출</span></div>
+<div class="fcard" style="background:var(--surface);border:1px solid var(--line);border-radius:3px;padding:14px 10px 8px;margin:16px 0"><div class="fig"><svg class="hflow" viewBox="0 0 1000 184" role="img"><defs><marker id="qm" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 z" class="fa"/></marker></defs><rect x="14.0" y="62.0" width="118.3" height="60.0" rx="3" class="fb-in"/><text x="73.1" y="89.0" class="ft" style="font-size:12.5px">질문</text><text x="73.1" y="105.0" class="fs" style="font-size:10.5px">마케팅 담당</text><rect x="156.3" y="62.0" width="118.3" height="60.0" rx="3" class="fb-key"/><text x="215.4" y="89.0" class="ft" style="font-size:12.5px">질의 분석</text><text x="215.4" y="105.0" class="fs" style="font-size:10.5px">기간 · 제품 · 지표</text><line x1="132.3" y1="92.0" x2="154.3" y2="92.0" class="fl" marker-end="url(#qm)"/><rect x="298.6" y="62.0" width="118.3" height="60.0" rx="3" class="fb-key"/><text x="357.7" y="89.0" class="ft" style="font-size:12.5px">라우팅</text><text x="357.7" y="105.0" class="fs" style="font-size:10.5px">혼합 판정</text><line x1="274.6" y1="92.0" x2="296.6" y2="92.0" class="fl" marker-end="url(#qm)"/><rect x="440.9" y="8.0" width="118.3" height="80.0" rx="3" class="fb-out"/><text x="500.0" y="45.0" class="ft" style="font-size:12px">정형 경로</text><text x="500.0" y="61.0" class="fs" style="font-size:10px">SQL → 표</text><rect x="440.9" y="96.0" width="118.3" height="80.0" rx="3" class="fb-out"/><text x="500.0" y="133.0" class="ft" style="font-size:12px">비정형 경로</text><text x="500.0" y="149.0" class="fs" style="font-size:10px">검색 → 청크</text><line x1="416.9" y1="92.0" x2="438.9" y2="48.0" class="fl" marker-end="url(#qm)"/><line x1="416.9" y1="92.0" x2="438.9" y2="136.0" class="fl" marker-end="url(#qm)"/><rect x="583.1" y="62.0" width="118.3" height="60.0" rx="3" class="fb-norm"/><text x="642.3" y="89.0" class="ft" style="font-size:12.5px">컨텍스트 합치기</text><text x="642.3" y="105.0" class="fs" style="font-size:10.5px">표 + 청크 + 출처</text><line x1="559.1" y1="48.0" x2="581.1" y2="92.0" class="fl" marker-end="url(#qm)"/><line x1="559.1" y1="136.0" x2="581.1" y2="92.0" class="fl" marker-end="url(#qm)"/><rect x="725.4" y="62.0" width="118.3" height="60.0" rx="3" class="fb-key"/><text x="784.6" y="89.0" class="ft" style="font-size:12.5px">사내 LLM</text><text x="784.6" y="105.0" class="fs" style="font-size:10.5px">인용 · 모름 규칙</text><line x1="701.4" y1="92.0" x2="723.4" y2="92.0" class="fl" marker-end="url(#qm)"/><rect x="867.7" y="62.0" width="118.3" height="60.0" rx="3" class="fb-out"/><text x="926.9" y="89.0" class="ft" style="font-size:12.5px">답변 · 로그</text><text x="926.9" y="105.0" class="fs" style="font-size:10.5px">수치 출처 + 문서 인용</text><line x1="843.7" y1="92.0" x2="865.7" y2="92.0" class="fl" marker-end="url(#qm)"/></svg><svg class="vflow" viewBox="0 0 360 462" role="img"><defs><marker id="qmv" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 z" class="fa"/></marker></defs><rect x="16.0" y="6.0" width="328.0" height="44.0" rx="3" class="fb-in"/><text x="180.0" y="25.0" class="ft" style="font-size:13px">질문</text><text x="180.0" y="41.0" class="fs" style="font-size:11px">마케팅 담당</text><rect x="16.0" y="72.0" width="328.0" height="44.0" rx="3" class="fb-key"/><text x="180.0" y="91.0" class="ft" style="font-size:13px">질의 분석</text><text x="180.0" y="107.0" class="fs" style="font-size:11px">기간 · 제품 · 지표</text><line x1="180.0" y1="50.0" x2="180.0" y2="70.0" class="fl" marker-end="url(#qmv)"/><rect x="16.0" y="138.0" width="328.0" height="44.0" rx="3" class="fb-key"/><text x="180.0" y="157.0" class="ft" style="font-size:13px">라우팅</text><text x="180.0" y="173.0" class="fs" style="font-size:11px">혼합 판정</text><line x1="180.0" y1="116.0" x2="180.0" y2="136.0" class="fl" marker-end="url(#qmv)"/><rect x="16.0" y="204.0" width="160.0" height="54.0" rx="3" class="fb-out"/><text x="96.0" y="228.0" class="ft" style="font-size:12px">정형 경로</text><text x="96.0" y="244.0" class="fs" style="font-size:9.5px">SQL → 표</text><rect x="184.0" y="204.0" width="160.0" height="54.0" rx="3" class="fb-out"/><text x="264.0" y="228.0" class="ft" style="font-size:12px">비정형 경로</text><text x="264.0" y="244.0" class="fs" style="font-size:9.5px">검색 → 청크</text><line x1="180.0" y1="182.0" x2="96.0" y2="202.0" class="fl" marker-end="url(#qmv)"/><line x1="180.0" y1="182.0" x2="264.0" y2="202.0" class="fl" marker-end="url(#qmv)"/><rect x="16.0" y="280.0" width="328.0" height="44.0" rx="3" class="fb-norm"/><text x="180.0" y="299.0" class="ft" style="font-size:13px">컨텍스트 합치기</text><text x="180.0" y="315.0" class="fs" style="font-size:11px">표 + 청크 + 출처</text><line x1="96.0" y1="258.0" x2="180.0" y2="278.0" class="fl" marker-end="url(#qmv)"/><line x1="264.0" y1="258.0" x2="180.0" y2="278.0" class="fl" marker-end="url(#qmv)"/><rect x="16.0" y="346.0" width="328.0" height="44.0" rx="3" class="fb-key"/><text x="180.0" y="365.0" class="ft" style="font-size:13px">사내 LLM</text><text x="180.0" y="381.0" class="fs" style="font-size:11px">인용 · 모름 규칙</text><line x1="180.0" y1="324.0" x2="180.0" y2="344.0" class="fl" marker-end="url(#qmv)"/><rect x="16.0" y="412.0" width="328.0" height="44.0" rx="3" class="fb-out"/><text x="180.0" y="431.0" class="ft" style="font-size:13px">답변 · 로그</text><text x="180.0" y="447.0" class="fs" style="font-size:11px">수치 출처 + 문서 인용</text><line x1="180.0" y1="390.0" x2="180.0" y2="410.0" class="fl" marker-end="url(#qmv)"/></svg></div></div>
+<h2>단계마다 나오는 것</h2>
+<div class="step"><div class="sh"><span class="n">1</span><b>질의 분석 — 질문에서 무엇을 뽑나</b><span>S08 · S24</span></div><div class="kv">
+<div><b>기간</b><span>"3분기" → <code>YM BETWEEN 202607 AND 202609</code></span></div>
+<div><b>제품</b><span>"eSSD" → 코드값 사전 → <code>PRODUCT_CODE = P-ESSD</code></span></div>
+<div><b>지표</b><span>"계약가격" → M002, "출하량" → M001 (지표 정의서)</span></div>
+<div><b>의도</b><span>수치(얼마) + 이유(왜) 둘 다 → <b>혼합</b></span></div>
+<div><b>권한</b><span>사용자 그룹 → 비정형 ACL 필터 · 정형 행 접근 제한 동시 적용</span></div>
+</div>
+</div>
+<div class="step"><div class="sh"><span class="n">2-A</span><b>정형 경로 — 숫자는 DB에서</b><span>S25</span></div><div class="kv">
+<div><b>SQL 생성</b><span>지표 정의서의 집계식으로 조립 (또는 사내 LLM 생성)</span></div>
+<div><b>정적 검증</b><span>SELECT 전용 · 허용 목록 · LIMIT — 통과해야 실행</span></div>
+<div><b>실행</b><span>읽기 전용 계정 · 타임아웃 · 행 수 상한</span></div>
+</div>
+<pre class="sql">SELECT YM, SUM(AMT_USD)/NULLIF(SUM(QTY),0) AS 계약가
+FROM V_PRICE_MONTHLY
+WHERE PRICE_TYPE=&#x27;CONTRACT&#x27;
+  AND YM BETWEEN &#x27;202607&#x27; AND &#x27;202609&#x27;
+  AND PRODUCT_CODE IN (&#x27;P-ESSD&#x27;)
+GROUP BY YM ORDER BY YM
+FETCH FIRST 200 ROWS ONLY
+
+── 결과 ─────────────────────────
+| YM     | 계약가(USD/GB) | 출하량(EB) |
+| 202607 | 1.53           | 23.11      |
+| 202608 | 1.56  (+2.0%)  | 23.79      |
+| 202609 | 1.60  (+2.6%)  | 24.66      |</pre>
+</div>
+<div class="step"><div class="sh"><span class="n">2-B</span><b>비정형 경로 — 이유는 문서에서</b><span>S09 ~ S12</span></div><div class="kv">
+<div><b>검색</b><span>하이브리드(BM25 + Dense/Sparse) + <b>같은 기간 필터</b></span></div>
+<div><b>결합 · 리랭크</b><span>RRF로 합치고 리랭커로 정렬</span></div>
+<div><b>다양성</b><span>MMR · 재송고 접기 · 문서당 최대 3개</span></div>
+</div>
+<pre class="doc">[1 | 증권사 | ○○증권 | 2026-08-12] 서버 고객 재고 소진으로 3분기 계약가
+    상승 전망. eSSD는 AI 서버 스토리지 수요가 견조 …
+[2 | 뉴스 | 전자신문 | 2026-08-09] 경쟁사 감산 발표로 공급 축소 …
+[3 | 사내 회의록 | 시장분석팀 | 2026-09-17] 안건 2. 4Q 전망 유지, 고객별 발주
+    재확인 (담당 박○○, 9/24)</pre>
+</div>
+<div class="step"><div class="sh"><span class="n">3</span><b>컨텍스트 합치기 — 표와 문서에 출처 라벨</b><span>S26</span></div><div class="kv">
+<div><b>표</b><span>[DB | V_PRICE_MONTHLY | 조건 | 집계식 | 조회 2026-09-20 10:12]</span></div>
+<div><b>문서</b><span>[번호 | 유형 | 기관 | 날짜] 라벨을 청크마다</span></div>
+<div><b>예산</b><span>토큰 예산 안에서 표 20행 + 청크 5~8개</span></div>
+</div>
+</div>
+<div class="step"><div class="sh"><span class="n">4</span><b>답변 — 수치는 DB 출처, 설명은 문서 인용</b><span>S14 · S27</span></div><div class="kv">
+<div><b>규칙</b><span>문장마다 근거 번호. 근거 없으면 "확인된 자료 없음"</span></div>
+<div><b>충돌</b><span>DB와 문서 수치가 다르면 <b>DB 우선 + 문서는 시점과 함께 병기</b></span></div>
+</div>
+<pre class="ans">3분기 eSSD 계약가격은 7월 1.53 → 9월 1.60 USD/GB 로 약 4.6% 올랐습니다 [DB].
+같은 기간 출하량도 23.11 → 24.66 EB 로 늘었습니다 [DB].
+
+상승 요인으로는 ① 서버 고객의 재고 소진에 따른 수요 회복 [1], ② 경쟁사 감산
+발표로 인한 공급 축소 [2] 가 지목됩니다. 사내에서는 4Q 전망을 유지하기로
+했고, 고객별 발주를 재확인 중입니다 [3].
+
+주의: [1]의 9월 전망치(1.62)는 예측이고, 위 수치는 DB 실적(1.60)입니다.
+
+[DB] V_PRICE_MONTHLY · PRICE_TYPE=&#x27;CONTRACT&#x27; · 3Q26 · 조회 2026-09-20 10:12</pre>
+</div>
+<div class="note"><b>이 흐름이 성립하려면</b> 세 가지가 먼저 있어야 합니다. ① 지표 정의서 — "계약가격"을 집계식으로 옮길 수 있어야 SQL이 나옵니다(S22). ② 문서 날짜 메타 — 같은 기간으로 문서를 거를 수 있어야 이유가 그 분기의 것이 됩니다(S05). ③ 권한 — 두 경로에 같은 사용자 권한이 걸려야 합니다(S28).</div>
+<h2>부록 · 지표 정의서는 이렇게 만든다</h2>
+<p class="d">앞의 질문 하나를 답하기 위해 카탈로그에 무엇이 있어야 했는지를 실제 값으로 보여 드립니다. 네 개 시트가 각각 SQL의 다른 부분을 만듭니다. 이 네 줄이 없으면 위의 SQL은 나오지 않습니다.</p>
+<h3>A-1. 지표정의 — 업무 용어를 집계식으로 (SELECT 절이 여기서 나온다)</h3>
+<div class="tw"><table><tr><th>지표ID</th><th>지표명</th><th>별칭 (; 구분)</th><th>한 줄 정의</th><th>대상 뷰</th><th>집계식 (SQL)</th><th>기본 필터</th><th>단위</th><th>기간</th></tr><tr><td class="m">M001</td><td class="k">출하량</td><td class="">출하;shipment;판매량</td><td class="">기간 중 고객에게 출하한 물량</td><td class="m">V_SALES_MONTHLY</td><td class="m">SUM(SHIP_QTY_EB)</td><td class="m">STATUS='CONFIRMED'</td><td class="">EB</td><td class="">월</td></tr><tr><td class="m">M002</td><td class="k">계약가격</td><td class="">계약가;ASP;contract price</td><td class="">월 단위 확정 계약 단가(가중평균)</td><td class="m">V_PRICE_MONTHLY</td><td class="m">SUM(AMT_USD)/NULLIF(SUM(QTY),0)</td><td class="m">PRICE_TYPE='CONTRACT'</td><td class="">USD/GB</td><td class="">월</td></tr><tr><td class="m">M003</td><td class="k">재고주수</td><td class="">재고 주수;WOI</td><td class="">기말 재고 ÷ 주 평균 출하량</td><td class="m">V_INVENTORY_WEEKLY</td><td class="m">SUM(INV_QTY)/NULLIF(AVG(WEEKLY_SHIP),0)</td><td class=""></td><td class="">주</td><td class="">주</td></tr></table></div>
+<p class="d" style="font-size:13.5px"><b>기본 필터</b>가 중요합니다. "출하량"은 확정 건만 세야 하는데, 이 조건을 적어 두지 않으면 LLM 이 취소 건까지 더해도 아무도 알아채지 못합니다.</p>
+<h3>A-2. 코드값사전 — 말을 코드로 (WHERE 절의 제품 조건이 여기서 나온다)</h3>
+<div class="tw"><table><tr><th>구분</th><th>코드</th><th>표준명</th><th>별칭 (; 구분)</th><th>사용 컬럼</th></tr><tr><td class="">제품</td><td class="m">P-ESSD</td><td class="k">eSSD</td><td class="">eSSD;enterprise SSD;기업용 SSD;이에스에스디</td><td class="m">PRODUCT_CODE</td></tr><tr><td class="">제품</td><td class="m">P-HBM3E-12</td><td class="k">HBM3E 12단</td><td class="">HBM3E 12H;12단 HBM3E;HBM3E-12</td><td class="m">PRODUCT_CODE</td></tr><tr><td class="">고객</td><td class="m">C-0001</td><td class="k">고객사 A</td><td class="">고객사 A;A사</td><td class="m">CUSTOMER_CODE</td></tr></table></div>
+<p class="d" style="font-size:13.5px">별칭은 <b>질문에 나올 법한 말</b>을 그대로 넣습니다. 담당자마다 부르는 이름이 다르면 다 넣습니다. 이 사전이 라우팅에서 "정형 질문"이라고 판단하는 근거도 됩니다.</p>
+<h3>A-3. 테이블카탈로그 · allow_list — 어디를 열어 줄지 (FROM 절과 차단 기준)</h3>
+<div class="tw"><table><tr><th>물리명</th><th>논리명</th><th>유형</th><th>소유</th><th>갱신</th><th>주요 컬럼</th><th>연계 우선</th></tr><tr><td class="m">V_PRICE_MONTHLY</td><td class="k">월별 가격</td><td class="">뷰</td><td class="">마케팅팀</td><td class="">월 1회</td><td class="m">YM;PRODUCT_CODE;PRICE_TYPE;QTY;AMT_USD</td><td class="">P0</td></tr><tr><td class="m">V_SALES_MONTHLY</td><td class="k">월별 출하</td><td class="">뷰</td><td class="">영업전략팀</td><td class="">일 1회</td><td class="m">YM;PRODUCT_CODE;CUSTOMER_CODE;SHIP_QTY_EB;AMT_USD</td><td class="">P0</td></tr><tr><td class="m">T_SALES_RAW</td><td class="k">출하 원장(원본)</td><td class="">테이블</td><td class="">영업전략팀</td><td class="">실시간</td><td class="m">—</td><td class="">—</td></tr></table></div>
+<div class="tw"><table><tr><th>뷰 · 테이블</th><th>허용 컬럼</th><th>행 접근 제한</th><th>사용</th><th>비고</th></tr><tr><td class="m">V_PRICE_MONTHLY</td><td class="m">YM;PRODUCT_CODE;PRICE_TYPE;QTY;AMT_USD</td><td class=""></td><td class="k">Y</td><td class=""></td></tr><tr><td class="m">V_SALES_MONTHLY</td><td class="m">YM;PRODUCT_CODE;CUSTOMER_CODE;SHIP_QTY_EB;AMT_USD</td><td class="m">REGION_CODE</td><td class="k">Y</td><td class="">고객 실명 컬럼 제외</td></tr><tr><td class="m">T_SALES_RAW</td><td class=""></td><td class=""></td><td class="k">N</td><td class="">원본 직접 조회 금지 — 실행 전 차단됨</td></tr></table></div>
+<h3>A-4. 그래서 SQL 의 어느 부분이 어디서 왔나</h3>
+<div class="tw"><table><tr><th>SQL 조각</th><th>어디서 왔나</th><th>없으면 생기는 일</th></tr><tr><td class="m">SELECT SUM(AMT_USD)/NULLIF(SUM(QTY),0)</td><td class="">지표정의 · 집계식 (M002)</td><td class="">LLM 이 단순 평균으로 계산해 값이 틀림</td></tr><tr><td class="m">FROM V_PRICE_MONTHLY</td><td class="">지표정의 · 대상 뷰 + allow_list 허용</td><td class="">원본 테이블을 뒤지거나 실행이 차단됨</td></tr><tr><td class="m">WHERE PRICE_TYPE='CONTRACT'</td><td class="">지표정의 · 기본 필터</td><td class="">현물가가 섞여 "계약가"가 아니게 됨</td></tr><tr><td class="m">AND PRODUCT_CODE IN ('P-ESSD')</td><td class="">코드값사전 · 별칭 → 코드</td><td class="">제품 구분 없이 전체가 집계됨</td></tr><tr><td class="m">AND YM BETWEEN '202607' AND '202609'</td><td class="">질의 분석 · 기간 + 카탈로그의 기간 표준</td><td class="">"3분기"가 회계/달력 중 무엇인지 몰라 엉뚱한 기간</td></tr><tr><td class="m">GROUP BY YM</td><td class="">지표정의 · 기간 단위(월)</td><td class="">월별 추이 대신 한 줄 합계만 나옴</td></tr><tr><td class="m">FETCH FIRST 200 ROWS ONLY</td><td class="">시스템이 자동 부착</td><td class="">대량 조회로 DB 부하</td></tr></table></div>
+<h3>A-5. 한 줄 정의, 이렇게 씁니다</h3>
+<div class="two"><div class="good"><b>좋은 예</b><br>계약가격 = 월 단위 <b>확정</b> 계약 단가의 <b>가중평균</b><br><code>SUM(AMT_USD)/NULLIF(SUM(QTY),0)</code> · <code>PRICE_TYPE='CONTRACT'</code> · 단위 USD/GB · 월<br><span style="color:#2C5F2C">→ 계산식 · 대상 · 조건 · 단위가 모두 한 줄에</span></div><div class="bad"><b>나쁜 예</b><br>계약가격 = 고객과 계약한 가격<br><span style="color:#8C2F3E">→ 단순평균인지 가중평균인지, 현물가 포함인지, 단위가 USD/GB 인지 USD/TB 인지 알 수 없음. SQL 로 옮길 수 없으니 카탈로그에 넣은 의미가 없음</span></div></div>
+<h3>A-6. 자주 빠뜨리는 것</h3>
+<div class="tw"><table><tr><th>빠뜨리는 것</th><th>증상</th><th>대응</th></tr><tr><td class="k">기본 필터</td><td class="">취소 · 반품 · 테스트 건이 섞여 수치가 조금씩 큼</td><td class="">지표마다 "무엇을 제외하는지" 한 줄</td></tr><tr><td class="k">단위</td><td class="">EB 와 TB, USD/GB 와 USD/TB 가 섞여 1000배 오차</td><td class="">단위 칸 필수 · 답변에도 단위 표기</td></tr><tr><td class="k">기간 기준</td><td class="">"3분기"가 회계연도인지 달력인지 사람마다 다름</td><td class="">카탈로그에 기간 표준 한 줄 고정</td></tr><tr><td class="k">별칭</td><td class="">현업이 부르는 이름으로 물으면 라우팅이 비정형으로 샘</td><td class="">실제 질문 20개에서 쓰인 표현을 그대로 별칭에</td></tr><tr><td class="k">유사 지표 구분</td><td class="">"가격"이 계약가인지 현물가인지 모호</td><td class="">별칭을 겹치지 않게 · 모호하면 되묻기</td></tr><tr><td class="k">소유 부서</td><td class="">수치가 이상할 때 물어볼 사람이 없음</td><td class="">지표마다 담당 부서 · 갱신 주기</td></tr></table></div>
+<h3>A-7. 채우는 순서 (한 번에 다 하지 않습니다)</h3>
+<ul class="ck"><li><b>1주차</b> — 테이블카탈로그: 연계 대상 뷰 5~10개만 고릅니다. 전부 열지 않습니다</li><li><b>1주차</b> — allow_list: 그 뷰의 허용 컬럼과 제외 컬럼(고객 실명 등)을 정합니다</li><li><b>2주차</b> — 지표정의: <b>실제 질문 20개에 나온 지표부터</b> 5~10개. 집계식 · 기본 필터 · 단위는 반드시</li><li><b>2주차</b> — 코드값사전: 그 지표에 걸리는 제품 · 고객 · 지역 코드와 별칭</li><li><b>3주차</b> — nb07 로 확인: 라우팅이 맞게 갈라지는지, SQL 이 나오는지, 차단이 도는지</li><li><b>완료 기준</b> — 실제 질문 20개 중 정형 질문이 <b>카탈로그만으로 SQL 이 되는 비율</b>을 적습니다. 이 비율이 Phase 3 의 출발 점수입니다</li></ul>
+<div class="note" style="margin-top:18px"><b>한 줄 요약</b> — 지표 정의서는 문서가 아니라 <b>코드의 입력</b>입니다. "이 칸을 비워 두면 SQL 의 어느 부분이 사라지는가"를 기준으로 채우면 됩니다. 채운 파일은 <code>rag_lab/catalog/metric_catalog.xlsx</code> 로 저장하면 nb07 이 그대로 읽습니다.</div>
+<footer>MIS RAG-FLOW-001 rev.2 · 2026-09-20 · 부록: 지표 정의서 샘플 · 반도체 MIS DT · 수치 · 문서는 설명용 예시</footer></div></body></html>

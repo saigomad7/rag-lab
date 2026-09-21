@@ -21,6 +21,8 @@ Oracle(원문·청크) → BGE-M3 → Milvus → 하이브리드 검색(BM25 + D
 
 설치 · 설정 · 셀별 설명은 **[USAGE.md](USAGE.md)** 를 봅니다.
 
+점검 · 설계 문서(체크리스트 · 엑셀 · 지표 정의서 양식 · 흐름 도식)는 **[docs/](docs/)** 에 있습니다.
+
 ```text
 %cd C:\work\rag_lab
 %pip install -r requirements.txt
