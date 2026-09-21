@@ -7,14 +7,15 @@ from openpyxl.formatting.rule import CellIsRule, FormulaRule
 from openpyxl.utils import get_column_letter as L
 
 with contextlib.redirect_stdout(io.StringIO()):
-    G = runpy.run_path('make_checklist_sheet_rev4.py')
+    G = runpy.run_path('make_checklist_sheet_rev5.py')
 P1A, P1B, P2, SMOKE = G['P1A'], G['P1B'], G['P2'], G['SMOKE']
 from sources_data import SOURCES, STAGES
 from flows_data import PRECHECK, FAMILIES, FLOWS
 from phase3_data import P3, ROUTING, PATTERNS, LINKS
+from columns_data import COMMON_DOC, COMMON_CHUNK, PER_SOURCE, NOTES
 P3S = [(c, n, [(re.sub(r'</?b>', '', a), b, re.sub(r'</?b>', '', cc), d, e2) for a, b, cc, d, e2 in items]) for c, n, items in P3]
 
-OUT = 'rag_checklist_rev4.xlsx'
+OUT = 'rag_checklist_rev5.xlsx'
 FONT = '맑은 고딕'
 ST = {'done': '완료', 'doing': '확인중', 'todo': '미확인'}
 strip = lambda s: re.sub(r'<[^>]+>', '', s).replace('&gt;', '>')
@@ -67,7 +68,7 @@ def finish(ws, hdr_row, last_col, last_row):
 
 # ---------- 안내 ----------
 ws = wb.active; ws.title = '안내'
-title(ws, 'RAG 단계별 체크리스트 (엑셀판) rev.4', '2026-09-20 · rag_checklist_sheet_rev4.html 과 같은 내용 · Phase 3 정형 연계 포함 · 사내 확인용', 4)
+title(ws, 'RAG 단계별 체크리스트 (엑셀판) rev.5', '2026-09-21 · rag_checklist_sheet_rev5.html 과 같은 내용 · 소스별 컬럼 정의서 포함 · 사내 확인용', 4)
 rows = [
  ('이 파일', 'HTML 간소화 시트 rev3의 엑셀판. 사내에서 직접 고치며 쓰는 용도'),
  ('입력하는 칸', '연노랑 칸만 입력: 현 수준 · 상태(드롭다운) · 메모 · 문서 수 · 스모크 판정'),
@@ -77,6 +78,7 @@ rows = [
  ('우선순위', 'P0 먼저 확인 · P1 다음 · P2 필요할 때'),
  ('시트 순서', '요약 → 소스별_매트릭스 → 소스별_상세 → 처리흐름_도식 → 처리흐름_판단기준 → P1_적재공통 → P1_검색 → P2_센싱 → P3_정형연계 → 정형연계_패턴 → 스모크20'),
  ('Phase 3', '정형 데이터 연계(S22~S29). 지표 정의서 양식은 metric_catalog_template_rev1.xlsx, 코드는 rag_lab/nb07_sql_router.py'),
+ ('소스별_컬럼정의', '소스 유형마다 있어야 할 컬럼(권장안). J·K 열(사내 보유 · 사내 컬럼명)을 채우면 사내 현황 매핑표가 된다'),
  ('사용자 확인값 출처', '2026-09-19 대화: doc id 원천키 · 재수집 중복 체크 · 작성일/수집일 분리 · 날짜 95% 보유 · 6축 전부 사용'),
  ('도식 색', '회색 = 입력 · 청록 = 핵심 처리 · 분홍 = 제거 · 흰색 = 일반 · 연두 = 청킹/메타 산출'),
 ]
@@ -232,6 +234,50 @@ status_rules(wj, f'F5:F{jl}'); dv_list(wj, ['미확인', '확인중', '완료', 
 widths(wj, [13, 16, 44, 44, 28, 9, 22])
 finish(wj, 4, 7, jl)
 
+# ---------- 소스별_컬럼정의 ----------
+wc = wb.create_sheet('소스별_컬럼정의')
+title(wc, '소스별 컬럼 정의서 — 어떤 컬럼이 있어야 하는가 (권장안)',
+      '연노랑 두 칸(사내 보유 · 사내 컬럼명)을 채우면 매핑표가 된다 · 필수 M / 권장 R / 선택 O', 11)
+header(wc, 4, ['구분', '소스', '컬럼명', '논리명', '타입', '필수', '어디서 오나', '쓰이는 곳', '샘플값', '사내 보유', '사내 컬럼명'])
+NEED_KO = {'M': '필수', 'R': '권장', 'O': '선택'}
+r = 5
+def _put(grp, src, items):
+    global r
+    for c_, ko, ty, nd, o, use, sam in items:
+        vals = [grp, src, c_, ko, ty, NEED_KO[nd], o, use, sam, '', '']
+        for k, v in enumerate(vals, 1):
+            x = wc.cell(r, k, v); x.font = f(); x.border = BOX; x.alignment = WRAP
+        wc.cell(r, 1).font = f(bold=True, color=PRI); wc.cell(r, 1).fill = STG_FILL
+        wc.cell(r, 3).font = Font(name='Consolas', size=10, color='1F4E79', bold=True)
+        wc.cell(r, 9).font = Font(name='Consolas', size=9)
+        for k in (2, 6):
+            wc.cell(r, k).alignment = CEN
+        for k in (10, 11):
+            wc.cell(r, k).fill = INPUT_FILL
+        r += 1
+_put('공통', '문서', COMMON_DOC)
+_put('공통', '청크', COMMON_CHUNK)
+for key, (ko, items) in PER_SOURCE.items():
+    _put('소스별', ko, items)
+cl = r - 1
+dv_list(wc, ['보유', '파생 가능', '없음', '해당없음'], f'J5:J{cl}')
+for p_, c_ in [('필수', 'C00000'), ('권장', 'B26B00'), ('선택', '808080')]:
+    wc.conditional_formatting.add(f'F5:F{cl}', CellIsRule(operator='equal', formula=[f'"{p_}"'], font=Font(name=FONT, bold=True, color=c_)))
+wc.conditional_formatting.add(f'J5:J{cl}', CellIsRule(operator='equal', formula=['"보유"'], fill=F('E2F0D9')))
+wc.conditional_formatting.add(f'J5:J{cl}', CellIsRule(operator='equal', formula=['"파생 가능"'], fill=F('FFF2CC')))
+wc.conditional_formatting.add(f'J5:J{cl}', CellIsRule(operator='equal', formula=['"없음"'], fill=F('F8E1E1')))
+widths(wc, [8, 13, 20, 16, 20, 7, 26, 22, 34, 11, 16])
+finish(wc, 4, 11, cl)
+r += 1
+wc.cell(r, 1, '정리하면서 놓치기 쉬운 것').font = f(size=11, bold=True, color=PRI); r += 1
+for a_, b_ in NOTES:
+    x = wc.cell(r, 1, a_); x.font = f(bold=True); x.border = BOX; x.alignment = WRAP
+    wc.merge_cells(start_row=r, start_column=1, end_row=r, end_column=2)
+    y = wc.cell(r, 3, b_); y.font = f(); y.border = BOX; y.alignment = WRAP
+    wc.merge_cells(start_row=r, start_column=3, end_row=r, end_column=11)
+    wc.row_dimensions[r].height = 28
+    r += 1
+
 # ---------- 정형연계_패턴 ----------
 wp = wb.create_sheet('정형연계_패턴')
 title(wp, '정형 × 비정형 결합 패턴 (Phase 3)', '질문 유형별로 A~D 중 하나를 쓴다 · 색: 회색=입력 · 청록=핵심 · 분홍=거절 · 연두=산출', 12)
@@ -366,7 +412,7 @@ wsum.freeze_panes = 'A5'
 wsum.page_setup.orientation = 'portrait'; wsum.sheet_properties.pageSetUpPr.fitToPage = True; wsum.page_setup.fitToHeight = 0
 
 # 시트 순서 정리
-order = ['안내', '요약', '소스별_매트릭스', '소스별_상세', '처리흐름_도식', '처리흐름_판단기준', 'P1_적재공통', 'P1_검색', 'P2_센싱', 'P3_정형연계', '정형연계_패턴', '스모크20']
+order = ['안내', '요약', '소스별_매트릭스', '소스별_상세', '소스별_컬럼정의', '처리흐름_도식', '처리흐름_판단기준', 'P1_적재공통', 'P1_검색', 'P2_센싱', 'P3_정형연계', '정형연계_패턴', '스모크20']
 wb._sheets = [wb[n] for n in order]
 wb.active = 1
 from openpyxl.workbook.properties import CalcProperties
