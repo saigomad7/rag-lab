@@ -1,6 +1,6 @@
 import html
 import re
-OUT='rag_checklist_sheet_rev6.html'
+OUT='rag_checklist_sheet_rev7.html'
 import flows_render, phase3_render, columns_render
 from phase3_data import P3
 D,W,T='done','doing','todo'
@@ -239,7 +239,7 @@ small{{font-weight:400;color:var(--mut);font-size:10.5px}}
 {flows_render.CSS}
 {phase3_render.CSS}
 {columns_render.CSS}</style></head><body><div class="app">
-<div class="title"><b>RAG_단계별_체크리스트_간소화</b><span>rev.6 · 2026-09-21 · 컬럼 저장 위치(JSON·ACL) 명시 · 정적 문서</span></div>
+<div class="title"><b>RAG_단계별_체크리스트_간소화</b><span>rev.7 · 2026-09-21 · 본문 · 요약 컬럼 추가 · 정적 문서</span></div>
 <div class="fx"><div class="ref">A1</div><div class="f">fx</div><div class="v">한 행 = 확인할 것 하나. 사내에서 확인한 값을 <b>현 수준</b>에, 끝나면 <b>상태</b>를 ☑로. 상세 옵션은 퀘스트 보드 · 설계 가이드 참조.</div></div>
 <div class="tabs"><a href="#sum">요약</a><a href="#smx">소스별 매트릭스</a><a href="#sdt">소스별 상세</a><a href="#cols">소스별 컬럼 정의</a><a href="#flow">소스별 처리 흐름</a><a href="#p1a">P1 적재 공통</a><a href="#p1b">P1 검색</a><a href="#p2">P2 센싱</a><a href="#p3">P3 정형연계</a><a href="#p3flow">정형연계 흐름</a><a href="#smoke">스모크 20</a></div>
 <div class="legend"><span><i style="background:var(--ok)"></i>완료 ☑</span><span><i style="background:var(--wip)"></i>확인중 ◐</span><span><i style="background:#fff"></i>미확인 ☐</span><span><b class="P0">P0</b> 먼저</span><span><b class="P1">P1</b> 다음</span><span><b class="P2">P2</b> 필요 시</span></div>
@@ -254,7 +254,7 @@ small{{font-weight:400;color:var(--mut);font-size:10.5px}}
 {tbl('p3',s5,W7,'P3 정형연계')}
 {phase3_render.section()}
 {tbl('smoke',s4,['50px','50px','34%','70px','80px','46px','20%'],'스모크 20','mid')}
-<div class="foot">기존 문서(단계별 체크리스트 rev3 · 설계 가이드 rev4 · 퀘스트 보드 rev4 · 스모크 20문항)는 그대로 유지하며, 이 시트는 간소화 병행본입니다.<br>MIS RAG-SHEET-001 rev.6 · 2026-09-19 · 반도체 MIS DT</div>
+<div class="foot">기존 문서(단계별 체크리스트 rev3 · 설계 가이드 rev4 · 퀘스트 보드 rev4 · 스모크 20문항)는 그대로 유지하며, 이 시트는 간소화 병행본입니다.<br>MIS RAG-SHEET-001 rev.7 · 2026-09-19 · 반도체 MIS DT</div>
 </div></body></html>'''
 open(OUT,'w').write(page)
 print('items',tot,'size',len(page),'scripts',page.count('<script'))

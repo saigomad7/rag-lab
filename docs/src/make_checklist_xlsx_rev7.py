@@ -7,16 +7,16 @@ from openpyxl.formatting.rule import CellIsRule, FormulaRule
 from openpyxl.utils import get_column_letter as L
 
 with contextlib.redirect_stdout(io.StringIO()):
-    G = runpy.run_path('make_checklist_sheet_rev6.py')
+    G = runpy.run_path('make_checklist_sheet_rev7.py')
 P1A, P1B, P2, SMOKE = G['P1A'], G['P1B'], G['P2'], G['SMOKE']
 from sources_data import SOURCES, STAGES
 from flows_data import PRECHECK, FAMILIES, FLOWS
 from phase3_data import P3, ROUTING, PATTERNS, LINKS
-from columns_data import (COMMON_DOC, COMMON_CHUNK, PER_SOURCE, NOTES, JSON_SCHEMA, TAGS_SCHEMA,
+from columns_data import (COMMON_DOC, COMMON_BODY, COMMON_CHUNK, PER_SOURCE, NOTES, JSON_SCHEMA, TAGS_SCHEMA,
                           ACL_SCHEMA, JSON_RULES, MAPPING_CASES)
 P3S = [(c, n, [(re.sub(r'</?b>', '', a), b, re.sub(r'</?b>', '', cc), d, e2) for a, b, cc, d, e2 in items]) for c, n, items in P3]
 
-OUT = 'rag_checklist_rev6.xlsx'
+OUT = 'rag_checklist_rev7.xlsx'
 FONT = '맑은 고딕'
 ST = {'done': '완료', 'doing': '확인중', 'todo': '미확인'}
 strip = lambda s: re.sub(r'<[^>]+>', '', s).replace('&gt;', '>')
@@ -69,7 +69,7 @@ def finish(ws, hdr_row, last_col, last_row):
 
 # ---------- 안내 ----------
 ws = wb.active; ws.title = '안내'
-title(ws, 'RAG 단계별 체크리스트 (엑셀판) rev.6', '2026-09-21 · rag_checklist_sheet_rev6.html 과 같은 내용 · 컬럼 저장 위치(JSON·ACL) 포함 · 사내 확인용', 4)
+title(ws, 'RAG 단계별 체크리스트 (엑셀판) rev.7', '2026-09-21 · rag_checklist_sheet_rev7.html 과 같은 내용 · 본문 · 요약 컬럼 포함 · 사내 확인용', 4)
 rows = [
  ('이 파일', 'HTML 간소화 시트 rev3의 엑셀판. 사내에서 직접 고치며 쓰는 용도'),
  ('입력하는 칸', '연노랑 칸만 입력: 현 수준 · 상태(드롭다운) · 메모 · 문서 수 · 스모크 판정'),
@@ -242,8 +242,8 @@ title(wc, '소스별 컬럼 정의서 — 어떤 컬럼이 있어야 하는가 (
       '연노랑 두 칸(사내 보유 · 사내 컬럼명)을 채우면 매핑표가 된다 · 필수 M / 권장 R / 선택 O', 11)
 header(wc, 4, ['구분', '소스', '이름', '논리명', '타입', '필수', '저장 위치', '어디서 오나', '쓰이는 곳', '샘플값', '사내 보유', '사내 컬럼명'])
 NEED_KO = {'M': '필수', 'R': '권장', 'O': '선택'}
-STORE_KO2 = {'COL': '공통 컬럼', 'JSON': 'META_EXTRA', 'TAGS': 'TAGS', 'ACL': 'ACL 행', 'CHUNK': '청크 컬럼'}
-STORE_FILL = {'COL': F('D7E9EC'), 'JSON': F('E8E1F5'), 'TAGS': F('E2F0D9'), 'ACL': F('F8E1E1'), 'CHUNK': F('ECF2F2')}
+STORE_KO2 = {'COL': '공통 컬럼', 'JSON': 'META_EXTRA', 'TAGS': 'TAGS', 'ACL': 'ACL 행', 'CHUNK': '청크 컬럼', 'BODY': '본문 테이블'}
+STORE_FILL = {'COL': F('D7E9EC'), 'JSON': F('E8E1F5'), 'TAGS': F('E2F0D9'), 'ACL': F('F8E1E1'), 'CHUNK': F('ECF2F2'), 'BODY': F('FBECD9')}
 r = 5
 def _put(grp, src, items):
     global r
@@ -261,6 +261,7 @@ def _put(grp, src, items):
             wc.cell(r, k).fill = INPUT_FILL
         r += 1
 _put('공통', '문서', COMMON_DOC)
+_put('공통', '본문·요약', COMMON_BODY)
 _put('공통', '청크', COMMON_CHUNK)
 for key, (ko, items) in PER_SOURCE.items():
     _put('소스별', ko, items)
