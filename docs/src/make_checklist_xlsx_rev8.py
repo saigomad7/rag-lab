@@ -7,7 +7,7 @@ from openpyxl.formatting.rule import CellIsRule, FormulaRule
 from openpyxl.utils import get_column_letter as L
 
 with contextlib.redirect_stdout(io.StringIO()):
-    G = runpy.run_path('make_checklist_sheet_rev7.py')
+    G = runpy.run_path('make_checklist_sheet_rev8.py')
 P1A, P1B, P2, SMOKE = G['P1A'], G['P1B'], G['P2'], G['SMOKE']
 from sources_data import SOURCES, STAGES
 from flows_data import PRECHECK, FAMILIES, FLOWS
@@ -16,7 +16,7 @@ from columns_data import (COMMON_DOC, COMMON_BODY, COMMON_CHUNK, PER_SOURCE, NOT
                           ACL_SCHEMA, JSON_RULES, MAPPING_CASES)
 P3S = [(c, n, [(re.sub(r'</?b>', '', a), b, re.sub(r'</?b>', '', cc), d, e2) for a, b, cc, d, e2 in items]) for c, n, items in P3]
 
-OUT = 'rag_checklist_rev7.xlsx'
+OUT = 'rag_checklist_rev8.xlsx'
 FONT = '맑은 고딕'
 ST = {'done': '완료', 'doing': '확인중', 'todo': '미확인'}
 strip = lambda s: re.sub(r'<[^>]+>', '', s).replace('&gt;', '>')
@@ -69,20 +69,20 @@ def finish(ws, hdr_row, last_col, last_row):
 
 # ---------- 안내 ----------
 ws = wb.active; ws.title = '안내'
-title(ws, 'RAG 단계별 체크리스트 (엑셀판) rev.7', '2026-09-21 · rag_checklist_sheet_rev7.html 과 같은 내용 · 본문 · 요약 컬럼 포함 · 사내 확인용', 4)
+title(ws, 'RAG 단계별 체크리스트 (엑셀판) rev.8', '2026-09-22 · rag_checklist_sheet_rev8.html 동일 내용 · 사내 현황 기입용', 4)
 rows = [
- ('이 파일', 'HTML 간소화 시트 rev3의 엑셀판. 사내에서 직접 고치며 쓰는 용도'),
- ('입력하는 칸', '연노랑 칸만 입력: 현 수준 · 상태(드롭다운) · 메모 · 문서 수 · 스모크 판정'),
- ('상태 값', '미확인 / 확인중 / 완료 / 해당없음 — 드롭다운에서 선택하면 색이 자동으로 바뀜'),
- ('자동 계산', '요약 시트와 소스별 매트릭스는 수식. 상세 시트의 상태를 바꾸면 자동 갱신 (직접 입력하지 않음)'),
- ('입력 예시', "P1_적재공통 시트 S01 1행: 현 수준 = 'doc id 있음, 재수집 시 중복 체크 중', 상태 = 완료"),
- ('우선순위', 'P0 먼저 확인 · P1 다음 · P2 필요할 때'),
+ ('용도', 'HTML 시트 rev8 엑셀판 · 사내 현황 기입용'),
+ ('입력 칸', '연노랑 칸 한정 — 현 수준 · 상태(드롭다운) · 메모 · 문서 수 · 스모크 판정'),
+ ('상태 값', '미확인 / 확인중 / 완료 / 해당없음 (드롭다운 선택 시 서식 자동 적용)'),
+ ('자동 계산', '요약 · 소스별 매트릭스 = 수식 · 상세 시트 상태 변경 시 자동 반영 (직접 입력 금지)'),
+ ('입력 예', "P1_적재공통 S01 1행 — 현 수준: 'doc id 보유 · 재수집 중복 체크 적용' / 상태: 완료"),
+ ('우선순위', 'P0 선행 · P1 후행 · P2 필요 시'),
  ('시트 순서', '요약 → 소스별_매트릭스 → 소스별_상세 → 처리흐름_도식 → 처리흐름_판단기준 → P1_적재공통 → P1_검색 → P2_센싱 → P3_정형연계 → 정형연계_패턴 → 스모크20'),
- ('Phase 3', '정형 데이터 연계(S22~S29). 지표 정의서 양식은 metric_catalog_template_rev1.xlsx, 코드는 rag_lab/nb07_sql_router.py'),
- ('소스별_컬럼정의', '소스마다 필요한 항목 + 저장 위치(공통 컬럼 / META_EXTRA JSON / TAGS / ACL 행). K·L 열을 채우면 사내 테이블 매핑표'),
- ('JSON_스키마', 'META_EXTRA · TAGS · ACL 의 실제 JSON 모양과 규칙, 사내 테이블 매핑 4가지 경우'),
- ('사용자 확인값 출처', '2026-09-19 대화: doc id 원천키 · 재수집 중복 체크 · 작성일/수집일 분리 · 날짜 95% 보유 · 6축 전부 사용'),
- ('도식 색', '회색 = 입력 · 청록 = 핵심 처리 · 분홍 = 제거 · 흰색 = 일반 · 연두 = 청킹/메타 산출'),
+ ('Phase 3', '정형 데이터 연계(S22~S29) · 지표 정의서 양식: metric_catalog_template_rev1.xlsx · 코드: rag_lab/nb07_sql_router.py'),
+ ('소스별_컬럼정의', '소스별 필요 항목 + 저장 위치(공통 컬럼 / META_EXTRA / TAGS / ACL 행 / 본문 테이블) · K·L 열 기입 시 사내 매핑표'),
+ ('JSON_스키마', 'META_EXTRA · TAGS · ACL JSON 형식 · 사용 규칙 · 사내 테이블 매핑 4가지 경우'),
+ ('기 확인값 (2026-09-19)', 'doc id 원천키 보유 · 재수집 중복 체크 적용 · 작성일 / 수집일 분리 · 날짜 보유율 95% · 센싱 6축 전체 사용'),
+ ('도식 범례', '회색=입력 · 청록=핵심 처리 · 분홍=제거 · 흰색=일반 · 연두=청킹/메타 산출'),
 ]
 header(ws, 4, ['항목', '내용'])
 for i, (a, b) in enumerate(rows, 5):
@@ -238,8 +238,8 @@ finish(wj, 4, 7, jl)
 
 # ---------- 소스별_컬럼정의 ----------
 wc = wb.create_sheet('소스별_컬럼정의')
-title(wc, '소스별 컬럼 정의서 — 어떤 컬럼이 있어야 하는가 (권장안)',
-      '연노랑 두 칸(사내 보유 · 사내 컬럼명)을 채우면 매핑표가 된다 · 필수 M / 권장 R / 선택 O', 11)
+title(wc, '소스별 컬럼 정의서 (권장안)',
+      '연노랑 2개 칸(사내 보유 · 사내 컬럼명) 기입 → 사내 매핑표 · 등급: M 필수 / R 권장 / O 선택', 12)
 header(wc, 4, ['구분', '소스', '이름', '논리명', '타입', '필수', '저장 위치', '어디서 오나', '쓰이는 곳', '샘플값', '사내 보유', '사내 컬럼명'])
 NEED_KO = {'M': '필수', 'R': '권장', 'O': '선택'}
 STORE_KO2 = {'COL': '공통 컬럼', 'JSON': 'META_EXTRA', 'TAGS': 'TAGS', 'ACL': 'ACL 행', 'CHUNK': '청크 컬럼', 'BODY': '본문 테이블'}
@@ -286,7 +286,7 @@ for a_, b_ in NOTES:
 
 # ---------- JSON_스키마 ----------
 wj2 = wb.create_sheet('JSON_스키마')
-title(wj2, 'META_EXTRA · TAGS · ACL — JSON 스키마와 규칙', '소스별 JSON 을 그대로 복사해 쓰는 형태 · 사내 테이블 매핑 방법', 6)
+title(wj2, 'META_EXTRA · TAGS · ACL — JSON 스키마 · 규칙', '소스별 JSON 형식(복사 사용) · 사내 테이블 매핑 기준', 6)
 r = 4
 def _block(label, text, w=110):
     global r
@@ -300,7 +300,7 @@ _block('RAG_DOC_ACL (권한)', ACL_SCHEMA)
 for key, (ko, _items) in PER_SOURCE.items():
     if key in JSON_SCHEMA:
         _block(f'META_EXTRA — {ko} ({key})', JSON_SCHEMA[key])
-wj2.cell(r, 1, 'JSON 을 쓸 때의 규칙').font = f(size=11, bold=True, color=PRI); r += 1
+wj2.cell(r, 1, 'JSON 사용 규칙').font = f(size=11, bold=True, color=PRI); r += 1
 header(wj2, r, ['규칙', '내용', '예']); r += 1
 for a_, b_, c_ in JSON_RULES:
     for k, v in enumerate([a_, b_, c_], 1):
@@ -310,7 +310,7 @@ for a_, b_, c_ in JSON_RULES:
     wj2.row_dimensions[r].height = 30
     r += 1
 r += 1
-wj2.cell(r, 1, '사내 테이블과 매핑하는 네 가지 경우').font = f(size=11, bold=True, color=PRI); r += 1
+wj2.cell(r, 1, '사내 테이블 매핑 — 4가지 경우').font = f(size=11, bold=True, color=PRI); r += 1
 header(wj2, r, ['경우', '처리 방법', '예']); r += 1
 for a_, b_, c_, d_ in MAPPING_CASES:
     for k, v in enumerate([a_, b_, f'{c_}  →  사내 보유 칸: {d_}'], 1):
@@ -325,7 +325,7 @@ wj2.page_setup.orientation = 'landscape'; wj2.sheet_properties.pageSetUpPr.fitTo
 
 # ---------- 정형연계_패턴 ----------
 wp = wb.create_sheet('정형연계_패턴')
-title(wp, '정형 × 비정형 결합 패턴 (Phase 3)', '질문 유형별로 A~D 중 하나를 쓴다 · 색: 회색=입력 · 청록=핵심 · 분홍=거절 · 연두=산출', 12)
+title(wp, '정형 × 비정형 결합 패턴 (Phase 3)', '질의 유형별 패턴 A~D 중 1개 적용 · 범례: 회색=입력 · 청록=핵심 · 분홍=거절 · 연두=산출', 12)
 r = 4
 wp.cell(r, 1, '라우팅').font = f(size=11, bold=True, color=PRI); r += 1
 col = 1
@@ -380,7 +380,7 @@ wp.page_setup.orientation = 'landscape'; wp.sheet_properties.pageSetUpPr.fitToPa
 
 # ---------- 스모크20 ----------
 wsm = wb.create_sheet('스모크20')
-title(wsm, '스모크 테스트 20문항 — 사내에서 돌리고 결과만 입력', '질문 원문 · 기대 근거는 smoke_test_20_rev1.html · 실패 유형 ①검색 누락 ②엉뚱한 청크 ③파싱 깨짐 ④답변 환각 ⑤권한 노출', 7)
+title(wsm, '스모크 테스트 20문항 — 실행 후 결과 기입', '질문 원문 · 기대 근거: smoke_test_20_rev1.html · 실패 유형: ①검색 누락 ②부적합 청크 ③파싱 손상 ④답변 환각 ⑤권한 노출', 7)
 header(wsm, 4, ['No', '유형', '질문 (요약)', '검색 판정', '답변 판정', '실패 유형', '메모'])
 r = 5
 for no, t, q in SMOKE:

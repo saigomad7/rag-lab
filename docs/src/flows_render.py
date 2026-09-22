@@ -119,21 +119,21 @@ CSS = """
 def section():
     h = ['<section class="sheet" id="flow"><div class="flowsec">']
     h.append('<p class="tabname" style="margin:0 0 6px">▸ 시트: 소스별 처리 흐름 (청킹 전)</p>')
-    h.append('<h3>0. 처리 방식을 정하기 전에 — 원문 DB 상태부터</h3>')
-    h.append('<p class="lead">DB에 데이터가 들어 있어도, <b>원본 파일이 있는지, 텍스트만 있는지</b>에 따라 할 수 있는 처리가 달라집니다. 아래 세 가지를 먼저 확인하면 소스별 흐름 중 어디까지 적용할지 정해집니다.</p>')
+    h.append('<h3>0. 선확인 — 원문 DB 저장 상태</h3>')
+    h.append('<p class="lead">적재 완료 상태라도 <b>원본 파일 보유 / 추출 텍스트 단독</b> 여부에 따라 적용 가능 처리 상이. 아래 3개 선확인 결과로 소스별 흐름 적용 범위 결정.</p>')
     h.append('<div class="fcard"><table class="pre-t" style="margin:0"><tr class="hdr"><td>확인할 것</td><td>어떻게</td><td>결과에 따라</td></tr>')
     for a, b, c in PRECHECK:
         h.append(f'<tr><td class="k">{a}</td><td data-l="어떻게">{b}</td><td class="j" data-l="결과에 따라">{c}</td></tr>')
     h.append('</table></div>')
     h.append('<h3>1. 전체 — 9개 소스를 4개 파서 계열로</h3>')
-    h.append('<p class="lead">소스는 9종이지만 파서는 4계열이면 됩니다. 계열 안에서는 파서를 공유하고, 정제 규칙과 청킹 단위만 소스별로 다릅니다.</p>')
+    h.append('<p class="lead">소스 9종 · 파서 4계열. 계열 내 파서 공유, 정제 규칙 · 청킹 단위만 소스별 상이.</p>')
     h.append('<div class="flegend"><span><i style="background:#F2F2F2"></i>입력</span><span><i style="background:var(--pri-wash);border-color:var(--pri)"></i>핵심 처리</span><span><i style="background:#F8E1E1"></i>제거</span><span><i style="background:#fff"></i>일반</span><span><i style="background:#E2F0D9"></i>청킹 · 메타 산출</span></div>')
     h.append(f'<div class="fcard"><div class="fig">{overview()}</div>')
     h.append('<div class="scroll"><table style="margin:0"><tr class="hdr"><td>계열</td><td>소스</td><td>공통 처리</td></tr>')
     for f, s, p in FAMILIES:
         h.append(f'<tr><td class="k">{f}</td><td data-l="소스">{s}</td><td class="j" data-l="공통 처리">{p}</td></tr>')
     h.append('</table></div></div>')
-    h.append('<h3>2. 소스별 처리 흐름</h3>')
+    h.append('<h3>2. 소스별 처리 흐름 (청킹 전)</h3>')
     for i, (src, fam, steps, rows, ex) in enumerate(FLOWS):
         h.append(f'<div class="fcard" id="f{i+1}"><div class="fh"><b>{i+1}. {src}</b><span>계열 · {fam}</span></div>')
         h.append(f'<div class="fig">{hflow(steps, f"mh{i}")}{vflow(steps, f"mv{i}")}</div>')

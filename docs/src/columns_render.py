@@ -49,10 +49,10 @@ def _rows(items):
 def section():
     h = ['<section class="sheet" id="cols"><div class="flowsec">']
     h.append('<p class="tabname" style="margin:0 0 6px">▸ 시트: 소스별 컬럼 정의서</p>')
-    h.append('<h3>0. 쓰는 법 — 무엇을, 어디에 저장하나</h3>')
-    h.append('<p class="lead">소스마다 필요한 항목과, 그 항목을 <b>어디에 저장할지</b>(공통 컬럼 · META_EXTRA JSON · TAGS · ACL 행)를 함께 적었습니다. '
-             '같은 항목이라도 저장 위치에 따라 검색 필터와 권한에 쓸 수 있는지가 달라집니다. '
-             '오른쪽 두 칸(<b>사내 보유 · 사내 컬럼명</b>)을 채우면 사내 테이블 매핑표가 됩니다.</p>')
+    h.append('<h3>0. 사용 기준 — 항목 · 저장 위치</h3>')
+    h.append('<p class="lead">소스별 필요 항목 + <b>저장 위치</b>(공통 컬럼 · META_EXTRA JSON · TAGS · ACL 행) 정의. '
+             '저장 위치에 따라 검색 필터 · 권한 사용 가능 여부 결정. '
+             '우측 2개 칸(<b>사내 보유 · 사내 컬럼명</b>) 기입 시 사내 테이블 매핑표로 사용.</p>')
     h.append('<div class="legend2">'
              '<span><span class="st-col">공통 컬럼</span> 모든 소스가 같은 이름으로 — 필터 · 권한 · 정렬 · 인용</span>'
              '<span><span class="st-json">META_EXTRA</span> 소스별 고유 값 — JSON 키</span>'
@@ -62,24 +62,24 @@ def section():
              '<span><span class="st-chunk">청크 컬럼</span> RAG_CHUNK</span></div>')
     h.append('<div class="legend2"><span><span class="need-m">필수</span> 없으면 검색 · 권한 · 인용이 깨짐</span>'
              '<span><span class="need-r">권장</span> 품질 · 운영</span><span><span class="need-o">선택</span> 있으면 좋음</span>'
-             '<span>표기 <b>"ORG_NAME ← publisher"</b> = 소스의 publisher 를 공통 컬럼 ORG_NAME 에 채운다</span></div>')
+             '<span>표기 <b>"ORG_NAME ← publisher"</b> = 소스 항목 publisher 를 공통 컬럼 ORG_NAME 에 적재</span></div>')
     h.append('<div class="srcbar">' + ''.join(f'<a href="#col-{k}">{v[0]}</a>' for k, v in PER_SOURCE.items()) + '</div>')
 
     h.append('<h3>1. 공통 — 문서 단위 (모든 소스가 같은 이름으로)</h3>')
     h.append(_rows(COMMON_DOC))
-    h.append('<h3>2. 공통 — 본문 · 요약 (검색 대상이 되는 실제 글)</h3>')
-    h.append('<p class="lead">메타만 있고 본문이 없으면 검색할 것이 없습니다. <b>원문(RAW_BODY) · 정제본(CLEAN_BODY) · 요약(SUMMARY)</b> 은 역할이 달라서 셋을 따로 둡니다. '
-             'CLOB 이라 메타 테이블(RAG_DOC)과 분리하는 편이 조회 · 동기화에 가볍습니다. <b>기존 원문 테이블을 그대로 이 자리에 써도 됩니다.</b></p>')
+    h.append('<h3>2. 공통 — 본문 · 요약 (검색 대상 본체)</h3>')
+    h.append('<p class="lead">메타 단독 = 검색 대상 부재. <b>원문(RAW_BODY) · 정제본(CLEAN_BODY) · 요약(SUMMARY)</b> 은 용도 상이 → 분리 저장. '
+             'CLOB 특성상 메타 테이블(RAG_DOC)과 분리 시 조회 · 동기화 부하 감소. <b>기존 원문 테이블 재사용 가능.</b></p>')
     h.append(_rows(COMMON_BODY))
     h.append('<div class="fcard"><table style="margin:0"><tr class="hdr"><td>무엇</td><td>언제 만드나</td><td>어디에 쓰나</td></tr>'
              '<tr><td class="k">RAW_BODY 원문</td><td data-l="언제">파싱 직후 (정제 전)</td>'
-             '<td class="j" data-l="어디에">파서를 바꾸거나 정제 규칙을 고쳤을 때 <b>다시 시작하는 기준</b>. 파싱 품질 점검(S02)</td></tr>'
+             '<td class="j" data-l="어디에">파서 교체 · 정제 규칙 변경 시 <b>재처리 기준</b> · 파싱 품질 점검(S02)</td></tr>'
              '<tr><td class="k">CLEAN_BODY 정제본</td><td data-l="언제">소스별 정제 규칙 적용 후</td>'
-             '<td class="j" data-l="어디에"><b>청킹의 입력</b>. 중복 판정 해시(CONTENT_HASH)도 이 값 기준</td></tr>'
-             '<tr><td class="k">SUMMARY 요약</td><td data-l="언제">적재 후 <b>배치</b>로 한 번 (질문할 때가 아니라)</td>'
-             '<td class="j" data-l="어디에">검색 결과 목록 표시 · 긴 문서의 컨텍스트 압축 · 센싱 리포트 · (선택) 문서 단위 검색용 임베딩</td></tr>'
-             '<tr><td class="k">CHUNK_SUMMARY</td><td data-l="언제">표 · 긴 청크에만</td>'
-             '<td class="j" data-l="어디에">숫자만 있는 표 청크는 검색어와 겹치는 말이 없어 잘 안 걸립니다. 한 줄 요약을 붙여 검색력을 보강</td></tr>'
+             '<td class="j" data-l="어디에"><b>청킹 입력</b> · 중복 판정 해시(CONTENT_HASH) 산출 기준</td></tr>'
+             '<tr><td class="k">SUMMARY 요약</td><td data-l="언제">적재 후 <b>배치 1회</b> (질의 시점 생성 금지)</td>'
+             '<td class="j" data-l="어디에">검색 결과 목록 표시 · 장문 컨텍스트 압축 · 센싱 리포트 · (선택) 문서 단위 검색 임베딩</td></tr>'
+             '<tr><td class="k">CHUNK_SUMMARY</td><td data-l="언제">표 · 장문 청크 한정</td>'
+             '<td class="j" data-l="어디에">수치 위주 표 청크는 질의어와 어휘 중복 부족 → 한 줄 요약 부착으로 검색력 보강</td></tr>'
              '</table></div>')
     h.append('<h3>3. 공통 — 청크 단위</h3>')
     h.append(_rows(COMMON_CHUNK))
@@ -89,7 +89,7 @@ def section():
              f'<pre class="jsonbox tg">{e(TAGS_SCHEMA)}</pre>'
              f'<pre class="chunk acl">{e(ACL_SCHEMA)}</pre></div>')
 
-    h.append('<h3>5. 소스별 — 공통 컬럼에 채울 것 + JSON 키 + 권한 행</h3>')
+    h.append('<h3>5. 소스별 — 공통 컬럼 적재분 + JSON 키 + 권한 행</h3>')
     for key, (ko, items) in PER_SOURCE.items():
         h.append(f'<div class="fcard" id="col-{key}"><div class="fh"><b>{e(ko)}</b><span>{key}</span></div>')
         h.append(_rows(items))
@@ -99,19 +99,19 @@ def section():
             h.append(f'<pre class="chunk rec">{e(SAMPLES[key])}</pre>')
         h.append('</div>')
 
-    h.append('<h3>6. JSON 을 쓸 때의 규칙</h3>')
+    h.append('<h3>6. JSON 사용 규칙</h3>')
     h.append('<div class="fcard"><table style="margin:0"><tr class="hdr"><td>규칙</td><td>내용</td><td>예</td></tr>')
     for a, b, c in JSON_RULES:
         h.append(f'<tr><td class="k">{e(a)}</td><td data-l="내용">{e(b)}</td><td class="j" data-l="예">{e(c)}</td></tr>')
     h.append('</table></div>')
 
-    h.append('<h3>7. 사내 테이블과 매핑하는 네 가지 경우</h3>')
+    h.append('<h3>7. 사내 테이블 매핑 — 4가지 경우</h3>')
     h.append('<div class="fcard"><table style="margin:0"><tr class="hdr"><td>경우</td><td>처리 방법</td><td>예</td><td>사내 보유 칸에</td></tr>')
     for a, b, c, d in MAPPING_CASES:
         h.append(f'<tr><td class="k">{e(a)}</td><td data-l="처리 방법">{e(b)}</td><td class="j" data-l="예">{e(c)}</td><td data-l="사내 보유 칸에">{e(d)}</td></tr>')
     h.append('</table></div>')
 
-    h.append('<h3>8. 정리하면서 놓치기 쉬운 것</h3>')
+    h.append('<h3>8. 작성 시 유의 사항</h3>')
     h.append('<div class="fcard"><table style="margin:0"><tr class="hdr"><td>항목</td><td>내용</td></tr>')
     for a, b in NOTES:
         h.append(f'<tr><td class="k">{e(a)}</td><td data-l="내용">{b}</td></tr>')

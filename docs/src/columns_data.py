@@ -237,63 +237,63 @@ JSON_SCHEMA = {
 }""",
 }
 
-TAGS_SCHEMA = """TAGS (모든 소스 공통 · 센싱과 라우팅의 근거)
+TAGS_SCHEMA = """TAGS (모든 소스 공통 · 센싱 · 라우팅 근거)
 {
-  "company": ["마이크론", "SK하이닉스"],     // 코드 사전의 표준명으로 정규화
+  "company": ["마이크론", "SK하이닉스"],     // 코드 사전 표준명으로 정규화
   "product": ["HBM", "eSSD"],
-  "topic":   ["증설", "가격"],               // 센싱 축 · 하위 신호와 같은 어휘
+  "topic":   ["증설", "가격"],               // 센싱 축 · 하위 신호와 동일 어휘
   "region":  ["일본"],
   "event":   "CAPACITY_EXPANSION"            // 선택: 이벤트 유형 코드
 }"""
 
-ACL_SCHEMA = """RAG_DOC_ACL (권한은 JSON 이 아니라 행으로)
+ACL_SCHEMA = """RAG_DOC_ACL (권한: JSON 아님 · 행 단위 저장)
 DOC_ID              PRINCIPAL_TYPE  PRINCIPAL_ID
 EML_20260910_004412  USER            lee@company.example      ← 발신자
 EML_20260910_004412  USER            pm@company.example       ← 수신자
 EXE_20260911_000009  GROUP           STRATEGY_PLANNING        ← 결재선 부서
 NEWS_20260915_000123 ALL             *                        ← 사외 공개
 
-→ Milvus 에는 acl = ["lee@…","pm@…"] 처럼 배열 필드로 복제해 검색 시 필터"""
+→ Milvus: acl = ["lee@…","pm@…"] 배열 필드로 복제 후 검색 필터에 사용"""
 
-# ---------- JSON 을 쓸 때의 규칙 ----------
+# ---------- JSON 사용 규칙 ----------
 JSON_RULES = [
- ('승격 기준', '필터 · 권한 · 정렬 · 인용에 쓰면 공통 컬럼, 화면 표시와 참고면 JSON',
-  '기간 필터에 쓰는 PUBLISHED_AT 은 컬럼. "리포트 종류"는 표시용이므로 JSON'),
- ('JSON 안의 값으로 필터하면', 'Milvus 벡터 검색과 동시에 걸기 어렵고, Oracle 에서도 함수 기반 인덱스가 필요',
-  'JSON_VALUE(META_EXTRA, \'$.period_covered\') 조회는 되지만 대량 필터에는 느림'),
- ('Oracle 저장', '19c: CLOB + CHECK(IS JSON) · 21c 이상: JSON 타입. 자주 쓰는 키는 가상 컬럼 + 인덱스',
+ ('승격 기준', '필터 · 권한 · 정렬 · 인용 사용 → 공통 컬럼 / 표시 · 참고 전용 → JSON',
+  'PUBLISHED_AT = 컬럼, report_type = JSON'),
+ ('JSON 필터 제약', 'Milvus 벡터 검색과 동시 필터 불가 · Oracle 은 함수 기반 인덱스 필요',
+  "JSON_VALUE(META_EXTRA,'$.period_covered') 조회 가능하나 대량 필터 비효율"),
+ ('Oracle 저장', '19c: CLOB + CHECK(IS JSON) / 21c+: JSON 타입 · 고빈도 키는 가상 컬럼 + 인덱스',
   "ALTER TABLE RAG_DOC ADD (PERIOD_COVERED AS (JSON_VALUE(META_EXTRA,'$.period_covered')))"),
- ('Milvus 복제', '필터에 쓰는 값만 스칼라 필드로. 나머지는 JSON 필드 하나로 보내 표시용으로만',
-  'doc_type · published_at · security_level · acl 은 스칼라, meta 는 JSON'),
- ('키 이름 고정', '같은 뜻의 키를 소스마다 다르게 쓰지 않기. 사전을 만들어 관리',
-  '대상 기간은 모든 소스에서 period_covered 로 통일'),
- ('빈 값 처리', '없는 키는 넣지 않음(null 넣지 않기). 코드에서 get(key, 기본값)으로 처리',
-  '{"opinion": null} 대신 키 자체를 생략'),
- ('본문은 JSON 에 넣지 않기', '본문 · 요약은 길고 자주 바뀌므로 CLOB 컬럼으로. JSON 안에 본문을 넣으면 조회 · 갱신이 무거워짐',
-  'CLEAN_BODY 는 컬럼, "본문 요약 3줄"도 SUMMARY 컬럼'),
+ ('Milvus 복제 범위', '필터 사용 값만 스칼라 필드 · 그 외는 JSON 필드 1개(표시 전용)',
+  'doc_type · published_at · security_level · acl = 스칼라'),
+ ('키 명명 규칙', '동일 의미 키는 소스 간 동일 명칭 · 키 사전으로 관리',
+  '대상 기간 = period_covered 로 통일'),
+ ('결측 처리', 'null 저장 금지 · 키 생략 · 조회 시 기본값 처리',
+  '{"opinion": null} → 키 제거'),
+ ('본문 · 요약', 'CLOB 컬럼 저장 · JSON 내 본문 포함 금지 (조회 · 갱신 비용)',
+  'CLEAN_BODY · SUMMARY = 컬럼'),
 ]
 
-# ---------- 사내 테이블과 매핑하는 4가지 경우 ----------
+# ---------- 사내 테이블 매핑 4가지 경우 ----------
 MAPPING_CASES = [
- ('① 같은 뜻의 컬럼이 이미 있다', '컬럼명만 맞춰 매핑. 값 형식(날짜 · 코드)만 통일',
-  '사내 NEWS_ARTICLE.PUB_DT → PUBLISHED_AT (형식 변환)', '사내 컬럼명 칸에 그대로 적기'),
- ('② 다른 테이블에 흩어져 있다', '적재 시 조인해서 한 행으로 합치거나, 분석용 뷰를 만들어 그 뷰를 읽기',
-  '기사 본문 = ARTICLE, 언론사 = PRESS_MASTER → 조인 후 ORG_NAME', '뷰 이름을 사내 컬럼명 칸에'),
- ('③ 본문에서 만들 수 있다 (파생)', '추출 규칙을 정하고 적재 파이프라인에서 생성. 규칙을 문서에 남김',
-  '기관 보고서 data_asof ← 본문 "as of 2Q26" 정규식', '사내 보유 = "파생 가능"'),
- ('④ 아예 없다', '수집 단계에서 받아올 수 있는지 확인 → 불가하면 그 항목에 의존하는 기능을 접기',
-  'cluster_id 가 없으면 재송고 접기 · 센싱 정확도 하락을 감수', '사내 보유 = "없음" + 비고에 영향'),
+ ('① 동일 의미 컬럼 존재', '컬럼 매핑 + 값 형식(날짜 · 코드) 통일',
+  '사내 NEWS_ARTICLE.PUB_DT → PUBLISHED_AT', '사내 컬럼명 기입'),
+ ('② 복수 테이블 분산', '적재 시 조인 또는 분석용 뷰 생성 후 조회',
+  'ARTICLE + PRESS_MASTER 조인 → ORG_NAME', '뷰명 기입'),
+ ('③ 본문에서 파생 가능', '추출 규칙 정의 → 적재 파이프라인에서 생성 · 규칙 문서화',
+  'data_asof ← 본문 "as of 2Q26" 정규식', '"파생 가능" 선택'),
+ ('④ 미보유', '수집 단계 확보 가능성 확인 → 불가 시 해당 기능 범위 축소',
+  'cluster_id 부재 → 재송고 접기 · 센싱 정확도 저하 감수', '"없음" + 영향 기재'),
 ]
 
 NOTES = [
- ('필수(M) 판단 기준', '이 값이 없으면 검색 · 권한 · 인용 중 하나가 깨지는 것만 M 으로 뒀습니다. 나머지는 R(권장) · O(선택)입니다.'),
- ('저장 위치가 핵심', '같은 항목이라도 <b>공통 컬럼 / META_EXTRA(JSON) / TAGS / ACL 행</b> 중 어디에 두느냐에 따라 검색 · 권한에서 쓸 수 있는지가 달라집니다.'),
- ('← 표기', '"ORG_NAME ← publisher" 는 소스의 그 항목을 공통 컬럼에 채우라는 뜻입니다. 소스마다 이름이 달라도 저장 위치는 하나로 모읍니다.'),
- ('권한은 행으로', '메일 수신자 · 회의 참석자 · 결재선을 JSON 배열에 두면 권한 필터로 쓸 수 없습니다. ACL 테이블 행으로 풀고 Milvus 에 배열로 복제합니다.'),
- ('날짜가 둘인 소스', '기관 보고서(발행일 vs data_asof), 지식문서(작성일 vs 최종 수정일)는 둘을 나눠 두고, 검색 기준으로 쓸 쪽을 PUBLISHED_AT 에 넣습니다.'),
- ('본문 · 요약을 왜 따로 두나', 'RAW_BODY 는 재처리의 기준, CLEAN_BODY 는 청킹 입력, SUMMARY 는 목록 표시 · 긴 문서 압축 · 센싱 리포트에 씁니다. 셋의 역할이 다르므로 덮어쓰지 않습니다.'),
- ('요약은 적재 직후 한 번', '요약은 검색할 때가 아니라 <b>적재 후 배치</b>로 만들어 저장합니다. 질문할 때마다 만들면 느리고 매번 달라집니다. 모델 · 시각을 같이 기록해 두면 모델 교체 시 재생성 대상을 고를 수 있습니다.'),
- ('사내 보유 채우기', '오른쪽 두 칸을 채우면 매핑표가 됩니다. "파생 가능"은 본문이나 다른 컬럼에서 만들 수 있다는 뜻입니다(위 ③).'),
+ ('필수 등급 기준', '검색 · 권한 · 인용 중 하나가 깨지는 항목만 M · 그 외 R(권장) / O(선택)'),
+ ('저장 위치 = 설계 결정', '동일 항목도 <b>공통 컬럼 / META_EXTRA(JSON) / TAGS / ACL 행</b> 중 어디에 두느냐에 따라 필터 · 권한 사용 가능 여부 결정'),
+ ('"←" 표기', 'ORG_NAME ← publisher = 소스 항목을 공통 컬럼에 적재 · 소스별 명칭 상이해도 저장 위치는 단일화'),
+ ('권한 항목', '수신자 · 참석자 · 결재선을 JSON 배열 보관 시 권한 필터 사용 불가 → ACL 테이블 행 분해 후 Milvus 배열 필드로 복제'),
+ ('이중 날짜 소스', '기관(발행일 vs data_asof) · 지식문서(작성일 vs 최종 수정일) 분리 저장 · 검색 기준 값만 PUBLISHED_AT 적재'),
+ ('본문 3종 용도', 'RAW_BODY = 재처리 기준 / CLEAN_BODY = 청킹 입력 · 해시 산출 / SUMMARY = 목록 표시 · 컨텍스트 압축 · 센싱 · 상호 덮어쓰기 금지'),
+ ('요약 생성 시점', '적재 후 배치 1회 · 질의 시점 생성 금지(지연 · 비결정성) · SUMMARY_MODEL · SUMMARY_AT 기록 → 모델 교체 시 재생성 대상 식별'),
+ ('사내 보유 칸', '보유 / 파생 가능 / 없음 중 선택 · "파생 가능" = 본문 또는 타 컬럼에서 생성 가능(매핑 ③)'),
 ]
 
 # ---------- 소스별 샘플 레코드 (한 건 전체) ----------
@@ -316,20 +316,20 @@ PUBLISHED_AT   : 2026-09-12        ORG_NAME : ○○증권      AUTHOR : 이분�
 TAGS           : {"company":["SK하이닉스","삼성전자"],"product":["DRAM","NAND"],"topic":["가격"]}
 META_EXTRA     : {"period_covered":"3Q26","report_type":"산업","target_stock":"메모리 반도체",
                   "opinion":"BUY","target_price":260000,"has_table":"Y"}
--- 표는 CHUNK_KIND=TABLE, SECTION_PATH="표 2. 가격 전망" 으로 별도 청크""",
+-- 표: CHUNK_KIND=TABLE · SECTION_PATH="표 2. 가격 전망" 별도 청크""",
  'INSTITUTION': """DOC_ID         : INS_20260901_000008
 TITLE          : 글로벌 HBM 시장 전망        ORG_NAME : ○○리서치
 PUBLISHED_AT   : 2026-09-01   ← 발행일 (검색 기준)
 META_EXTRA     : {"data_asof":"2Q26","research_type":"시장전망","license_scope":"사내 열람",
                   "region_scope":"Global","keywords":["HBM","CapEx"]}
--- 발행일과 데이터 기준 시점이 다르다. 답변에는 둘 다 표기""",
+-- 발행일 ≠ data_asof → 답변에 둘 다 표기""",
  'EMAIL': """DOC_ID         : EML_20260910_004412        SRC_KEY : <a1b2@mail>
 DATA_SOURCE    : INTERNAL   DOC_TYPE : EMAIL   SECURITY_LEVEL : 2
 TITLE          : RE: 4Q 발주 조정 건          PUBLISHED_AT : 2026-09-10 14:22
 ORG_NAME       : 영업전략팀   AUTHOR : 이영업
 META_EXTRA     : {"thread_id":"TH_9901","has_attachment":"Y",
                   "attach_doc_ids":["RPT_20260910_0007"],"quote_removed":"Y","recipients_cnt":3}
--- RAG_DOC_ACL : (USER, lee@…) (USER, pm@…) (USER, cto@…)   ← 이 세 사람만 검색됨""",
+-- RAG_DOC_ACL : (USER, lee@…) (USER, pm@…) (USER, cto@…)   ← 3인 외 검색 제외""",
  'MEETING': """DOC_ID         : MTG_20260917_000045
 TITLE          : 시장분석팀 주간회의         PUBLISHED_AT : 2026-09-17   ORG_NAME : 시장분석팀
 META_EXTRA     : {"project_code":"PRJ-MIS-2026","agenda_no":2,"decisions":["4Q 전망 유지"],
@@ -347,7 +347,7 @@ TITLE          : 용어 정의 — Sufficiency Ratio
 PUBLISHED_AT   : 2026-08-30   ← 최종 수정일을 넣는다   AUTHOR : 관리자(최종 수정자)
 META_EXTRA     : {"category":"용어 정의","system_name":"MIS","doc_status":"CURRENT",
                   "related_docs":["KB_0102"]}
--- doc_status=OBSOLETE 는 IS_DELETED=Y 로 동기화""",
+-- doc_status=OBSOLETE → IS_DELETED=Y 동기화""",
  'ENG_REPORT': """DOC_ID         : ENG_20260902_000076        SECURITY_LEVEL : 2
 TITLE          : HBM4 12단 신뢰성 평가        ORG_NAME : ○○개발팀   PUBLISHED_AT : 2026-09-02
 TAGS           : {"product":["HBM4-12H"],"topic":["신뢰성"]}
@@ -359,5 +359,5 @@ TITLE          : 3Q 경영 현안                ORG_NAME : 전략기획   PUBLI
 META_EXTRA     : {"report_to":"CEO","meeting_body":"경영회의","confidentiality":"CONFIDENTIAL",
                   "decision_items":["고객 다변화 추진"],"summary_slide":2}
 -- RAG_DOC_ACL : (GROUP, STRATEGY_PLANNING) (USER, A상무) (USER, B전무)
--- 그 외 계정의 검색 결과에서는 이 문서가 아예 나오지 않아야 함 (누출 테스트 대상)""",
+-- 그 외 계정 검색 결과 노출 0건 (누출 테스트 대상)""",
 }
