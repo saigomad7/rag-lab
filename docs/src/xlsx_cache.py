@@ -40,7 +40,7 @@ def inject(path, vals):
         def rep(m):
             coord = m.group(2)
             v = vals.get((name, coord))
-            attrs = m.group(1)
+            attrs = re.sub(r'\s+t="[^"]*"', '', m.group(1))   # 기존 t 속성 제거 — 재실행 시 중복 방지
             if v is None:
                 return m.group(0)
             if isinstance(v, bool):

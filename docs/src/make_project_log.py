@@ -90,7 +90,7 @@ ws['A2'] = '2026-09-23 · 마켓 인텔리전스 포털용 RAG — 수집 → �
 ws['A2'].font = f(size=9, color='6B6B6B')
 flow = [
  ('1', '수집 · 파싱', '외부(뉴스 · SNS · 증권사 · 기관) · 내부(보고서 · 메일 · 회의록) → 원본 적재', '-', '완료'),
- ('2', '통합 · 메타', '분산 테이블 → 단일 문서 테이블 · 소스 유형별 메타 설계(공통 컬럼 · META_EXTRA JSON)', 'rag_checklist_rev9.xlsx `소스별_컬럼정의`', '진행'),
+ ('2', '통합 · 메타', '분산 테이블 → 단일 문서 테이블 · 소스 유형별 메타 설계(공통 컬럼 · META_EXTRA JSON)', 'rag_checklist_rev10.xlsx `소스별_컬럼정의`', '진행'),
  ('3', '청킹', 'DOC_ID 로 연결되는 청크 테이블 적재', 'nb02_parse_chunk', '진행'),
  ('4', '임베딩 · 인덱싱', 'BGE-M3 → Milvus (dense + sparse · 스칼라 필터)', 'nb04_milvus', '진행'),
  ('5', '적재 검증', '단계별 무결성 점검 — 미달 항목 해소 후 평가 진입', 'nb00_pipeline_check → `3_파이프라인점검`', '미착수'),
@@ -158,6 +158,8 @@ HIST = [
  ('2026-09-23', '#34', '보완', '골든셋 선행 조건(원본 → 파싱 · 청킹) 지적 반영', 'nb11_evidence_link · pack_rev3 (2d · 2e)', '완료'),
  ('2026-09-23', '#35', '확장', '파이프라인 검증 · LLM 골든셋 생성 · LangGraph 고도화 · 이력 대장',
   'lab_pipeline · nb00 / lab_golden_llm · nb12 / lab_graph · nb13 / 본 대장', '완료'),
+ ('2026-09-23', '#36', '보완', '기존 엑셀에 신규 도구 반영 · 수식 캐시 중복 주입 버그(파일 손상) 수정',
+  'golden_eval_pack_rev4(1b · 프리셋) · rag_checklist_rev10(단계별_실행도구) · golden_set_example_rev2', '완료'),
 ]
 cols = ['일자', '회차', '구분', '요청 · 결정', '산출물', '상태', '사내 메모']
 head(ws, '1. 진행 이력', '착수부터의 요청 · 결정 · 산출물 · 신규 행은 아래에 추가', cols,
@@ -205,8 +207,9 @@ ART = [
  ('문서', 'rag_quest_board_rev4.html', '옵션 사전', 'rag_lab/docs/', ''),
  ('문서', 'query_flow_example_rev2.html', '혼합 질의 흐름 · 지표 정의서 예시', 'rag_lab/docs/', ''),
  ('엑셀', 'rag_project_log_rev1.xlsx', '이력 대장 — 본 파일', 'rag_lab/docs/', '신규'),
- ('엑셀', 'rag_checklist_rev9.xlsx', '체크리스트 · 컬럼 정의 기입본', 'rag_lab/docs/', ''),
- ('엑셀', 'golden_eval_pack_rev3.xlsx', '골든셋 · 평가 기입본', 'rag_lab/docs/', ''),
+ ('엑셀', 'rag_checklist_rev10.xlsx', '체크리스트 · 컬럼 정의 · 단계별 실행 도구(S번호↔노트북)', 'rag_lab/docs/', '신규 시트'),
+ ('엑셀', 'golden_eval_pack_rev4.xlsx', '골든셋 · 평가 기입본 (LLM 골든셋 검수 · 프리셋 열 포함)', 'rag_lab/docs/', '신규 시트 1b'),
+ ('엑셀', 'golden_set_example_rev2.xlsx', '골든셋 실물 예시 — LLM 생성 · 근거 연결 포함 9종', 'rag_lab/docs/', '신규'),
  ('엑셀', 'metric_catalog_template_rev1.xlsx', '정형 지표 정의서 양식', 'rag_lab/docs/', ''),
  ('데이터', 'golden/answer_golden_v1.csv', '사외 정보 기반 질문 60건', 'rag_lab/golden/', '근거 연결 필요'),
  ('데이터', 'golden/smoke20.csv', '스모크 20문항', 'rag_lab/golden/', ''),
@@ -352,7 +355,7 @@ TODO = [
  ('P1', 'nb11 로 사외 60문항 근거 연결 · 수집 공백 목록화', '', '', '미착수', '`2d` · `2e` 시트'),
  ('P1', 'nb06 · nb10 1차 측정 → `7_지표현황` 기입', '', '', '미착수', '기준선 확보'),
  ('P2', 'nb13 프리셋 비교 → 운영 프리셋 확정', '', '', '미착수', '회차당 변경 1개'),
- ('P2', '소스별 컬럼 정의서 사내 보유 여부 기입', '', '', '미착수', 'rag_checklist_rev9.xlsx'),
+ ('P2', '소스별 컬럼 정의서 사내 보유 여부 기입', '', '', '미착수', 'rag_checklist_rev10.xlsx'),
  ('P2', '정형 지표 정의서 작성 → nb07 연계', '', '', '미착수', 'metric_catalog_template_rev1.xlsx'),
  ('P3', 'Phase 2 마켓 센싱 축별 상시 질의 정의', '', '', '미착수', '6축 · 백테스트'),
 ]
