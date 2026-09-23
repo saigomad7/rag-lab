@@ -252,3 +252,61 @@ def run_record(run_id, by_set, n_items, setting='', **kw):
         'MRR': g('mrr'), 'nDCG@10': g('ndcg@10'),
         '충실도': kw.get('faith', ''), '인용 정확도': kw.get('cite', ''), '모름 정확도': kw.get('noans', ''),
         '비고': kw.get('note', '')}])
+
+
+# ---------------- 근거 문서 연결 (질문 → 코퍼스 근거 확정) ----------------
+LINK_COLS = ['qid', 'question', 'q_type', 'cand_rank', 'cand_doc_id', 'cand_doc_type', 'cand_date',
+             'cand_text', 'score', '근거 판정', '확정 doc_id', '확정 정답 문장', '검수자']
+
+
+def link_evidence(questions, search_fn, k=5, meta=None):
+    """
+    질문 은행 → 코퍼스 근거 후보 제시 (사람이 확정할 표).
+    질문 1건당 상위 k 후보를 행으로 펼친다. 후보가 없으면 '문서 없음' 1행.
+    """
+    rows = []
+    for q in questions.itertuples():
+        res = search_fn(q.question, k)
+        if res is None or not len(res):
+            rows.append({'qid': q.qid, 'question': q.question, 'q_type': getattr(q, 'q_type', ''),
+                         'cand_rank': 0, 'cand_doc_id': '', 'cand_doc_type': '', 'cand_date': '',
+                         'cand_text': '(검색 결과 없음)', 'score': None, '근거 판정': '', '확정 doc_id': '',
+                         '확정 정답 문장': '', '검수자': ''})
+            continue
+        for r in res.itertuples():
+            d = meta.loc[r.doc_id] if (meta is not None and r.doc_id in meta.index) else None
+            rows.append({'qid': q.qid, 'question': q.question if r.rank == 1 else '',
+                         'q_type': getattr(q, 'q_type', '') if r.rank == 1 else '',
+                         'cand_rank': r.rank, 'cand_doc_id': r.doc_id,
+                         'cand_doc_type': (d.get('doc_type') if d is not None else ''),
+                         'cand_date': (str(d.get('published_at'))[:10] if d is not None else ''),
+                         'cand_text': str(r.text)[:300], 'score': round(float(getattr(r, 'score', 0) or 0), 4),
+                         '근거 판정': '', '확정 doc_id': '', '확정 정답 문장': '', '검수자': ''})
+    return pd.DataFrame(rows, columns=LINK_COLS)
+
+
+def apply_evidence(linked, questions):
+    """
+    근거 확정 결과 → 골든셋. '근거 확보' 행의 확정 doc_id · 정답 문장을 질문에 붙인다.
+    반환: (golden, coverage) — coverage: 질문별 근거 확보 / 문서 없음 / 보류
+    """
+    d = linked.fillna('')
+    ok = d[d['근거 판정'] == '근거 확보'].groupby('qid').agg(
+        gold_doc_ids=('확정 doc_id', lambda s: ';'.join(sorted({x for x in s if x}))),
+        gold_text=('확정 정답 문장', lambda s: next((x for x in s if x), '')))
+    status = d.groupby('qid')['근거 판정'].agg(lambda s: ('근거 확보' if '근거 확보' in set(s)
+                                                     else ('문서 없음' if '문서 없음' in set(s) else '보류')))
+    q = questions.set_index('qid')
+    golden = q.join(ok, how='inner').reset_index()
+    coverage = status.rename('근거 상태').reset_index().merge(
+        questions[['qid', 'q_type']], on='qid', how='left')
+    return golden, coverage
+
+
+def coverage_report(coverage):
+    """근거 확보율 — 검색 평가 대상 / 수집 공백 구분"""
+    t = coverage['근거 상태'].value_counts()
+    n = len(coverage)
+    return pd.DataFrame([{'질문 수': n, '근거 확보': t.get('근거 확보', 0), '문서 없음': t.get('문서 없음', 0),
+                          '보류': t.get('보류', 0),
+                          '근거 확보율': round(t.get('근거 확보', 0) / n, 3) if n else 0}])

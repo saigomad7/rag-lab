@@ -23,7 +23,12 @@ pd.set_option('display.width', 220); pd.set_option('display.max_columns', 40); p
 print('LAB_MODE =', C.LAB_MODE, '| LLM =', '설정됨' if C.LLM_URL else '없음(구조 지표만)')
 
 # %% [1] 질의 · 답변 골든셋 (60문항 · 사외 정보 기반)
-gold = lab_io.read_table(os.path.join(C.GOLDEN_DIR, 'answer_golden_v1.csv')).fillna('')
+# 선행 조건: 질문의 근거 문서가 코퍼스에 적재 · 파싱 · 청킹된 상태여야 측정 성립
+#   근거 미연결 상태의 60문항 = 질문 은행 → nb11_evidence_link 로 근거 확정 후 golden_from_bank.csv 사용 권장
+_linked = os.path.join(C.GOLDEN_DIR, 'golden_from_bank.csv')
+SRC = _linked if os.path.exists(_linked) else os.path.join(C.GOLDEN_DIR, 'answer_golden_v1.csv')
+gold = lab_io.read_table(SRC).fillna('')
+print('골든셋 소스 =', os.path.basename(SRC), '(질문 은행 상태면 근거 미확보 문항이 섞여 점수 과소평가)')
 print(len(gold), '문항 ·', gold.q_type.value_counts().to_dict())
 print(gold.head(3)[['qid', 'question', 'must_include']].to_string(index=False))
 
