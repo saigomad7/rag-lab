@@ -18,10 +18,12 @@ sys.path.insert(0, LAB)
 os.environ.setdefault('LAB_MODE', 'sample')
 _cwd = os.getcwd()
 os.chdir(LAB)
-import lab_sample, lab_autoeval                     # noqa: E402
+import lab_sample, lab_autoeval, lab_ragas          # noqa: E402
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import answers_golden as AG                          # noqa: E402
 os.chdir(_cwd)
 
-OUT = 'golden_eval_pack_rev1.xlsx'
+OUT = 'golden_eval_pack_rev2.xlsx'
 FONT, PRI = '맑은 고딕', '185463'
 thin = Side(style='thin', color='BFCACB')
 BOX = Border(left=thin, right=thin, top=thin, bottom=thin)
@@ -64,8 +66,8 @@ def dv(ws, items, rng):
 
 # ---------------- 0. 안내 ----------------
 ws = wb.active; ws.title = '0_안내'
-ws['A1'] = '골든셋 · 정량 평가 팩 rev.1'; ws['A1'].font = f(size=14, bold=True, color=PRI)
-ws['A2'] = '2026-09-23 · 사내 데이터 기반 골든셋 구성 → 정량 평가 · 연노랑 = 기입 / 회색 = 자동 계산'
+ws['A1'] = '골든셋 · 정량 평가 팩 rev.2'; ws['A1'].font = f(size=14, bold=True, color=PRI)
+ws['A2'] = '2026-09-23 · 골든셋 구성 → 정량 평가 · 질의·답변 골든셋 60문항 · 표준 지표(RAGAS 계열) 포함 · 연노랑 = 기입 / 회색 = 자동 계산'
 ws['A2'].font = f(size=9, color='6B6B6B')
 steps = [
  ('1단계 · 자동 생성', 'nb08_auto_eval 실행 → out/nb08_set_*.csv 생성 (known-item · 제목 · 합성)', '라벨 작업 0건'),
@@ -74,6 +76,8 @@ steps = [
  ('4단계 · 측정', 'nb06(검색) · nb08(자동셋) 실행 → `3_평가_실행기록` 에 회차별 값 기입', '설정 변경 시마다 1행 추가'),
  ('5단계 · 판정', '`4_지표_정의` 기준 대비 충족 / 미달 · `5_전후비교` 로 개선 유의성 확인', '표본오차 · McNemar 자동 계산'),
  ('6단계 · 원인 분석', '`6_문항별_결과` 개선 / 퇴행 문항 · `7_답변평가` 충실도 · 인용', '퇴행 문항 = 회귀 위험'),
+ ('대안 경로 · 답변 평가', '사내 골든셋 확보 곤란 시 `2b_질의응답_골든셋`(사외 정보 기반 60문항) 사용', '문서 ID 불필요 · 필수 요소로 채점'),
+ ('표준 지표', '`8_표준지표` 16종 (검색 IR · 생성 RAGAS 계열 · 운영) · 계산: nb10_answer_eval', 'auto / judge / manual 구분'),
 ]
 ws['A4'] = '단계'; ws['B4'] = '내용'; ws['C4'] = '소요 · 비고'
 for c in ('A4', 'B4', 'C4'):
@@ -269,8 +273,72 @@ for i, (k, col) in enumerate([('충실도', 'D'), ('인용 정확도', 'E'), ('�
     c = ws.cell(i, 2, f'=IFERROR(COUNTIF({col}5:{col}{4 + N_ROWS},"1")/(COUNTIF({col}5:{col}{4 + N_ROWS},"1")+COUNTIF({col}5:{col}{4 + N_ROWS},"0")),"")')
     c.fill = CALC; c.border = BOX; c.number_format = '0.000'; c.font = f()
 
+# ---------------- 2b. 질의 · 답변 골든셋 (사외 정보 기반 60문항) ----------------
+ws = wb.create_sheet('2b_질의응답_골든셋')
+cols = ['qid', '질문', '유형', '난이도', '근거 소스', '필수 요소 (; 구분)', '채점 기준', '흔한 오답', '측정 점수', '평가자', '비고']
+head(ws, '2b. 질의 · 답변 골든셋 — 사외 정보 기반 60문항',
+     '문서 ID 없이 필수 요소로 채점 → 사내 골든셋 확보 전에도 정량 평가 가능 · I~K 열 기입',
+     cols, [9, 46, 8, 8, 16, 44, 34, 28, 10, 10, 22], n_input=0)
+ag = pd.DataFrame(AG.ROWS, columns=AG.COLUMNS)
+for i, r in enumerate(ag.itertuples(), 5):
+    vals = [r.qid, r.question, r.q_type, r.level, r.source_hint, r.must_include, r.scoring, r.fail_mode, '', '', '']
+    for j, v in enumerate(vals, 1):
+        x = ws.cell(i, j, v); x.font = f(); x.border = BOX; x.alignment = WRAP
+        if j in (1, 3, 4, 9):
+            x.alignment = CEN
+        if j in (9, 10, 11):
+            x.fill = INP
+last = 4 + len(ag)
+ws.freeze_panes = 'A5'
+ws.auto_filter.ref = f'A4:{L(len(cols))}{last}'
+dv(ws, ['1', '0.67', '0.5', '0.33', '0'], f'I5:I{last}')
+b = last + 2
+ws.cell(b, 1, '집계').font = f(bold=True, color=PRI)
+for i, (k, v) in enumerate([
+    ('채점 완료', f'=COUNT(I5:I{last})'),
+    ('평균 점수', f'=IFERROR(AVERAGE(I5:I{last}),"")'),
+    ('답없음 정확도', f'=IFERROR(SUMIFS(I5:I{last},C5:C{last},"답없음")/COUNTIFS(C5:C{last},"답없음",I5:I{last},"<>"),"")'),
+    ('합격 판정 (평균 ≥ 0.75)', f'=IF(B{b + 2}="","",IF(B{b + 2}>=0.75,"충족","미달"))')], b + 1):
+    ws.cell(i, 1, k).font = f(bold=True); ws.cell(i, 1).border = BOX
+    c = ws.cell(i, 2, v); c.fill = CALC; c.border = BOX; c.font = f(); c.number_format = '0.000'
+
+# ---------------- 2c. 답변 채점 기준 ----------------
+ws = wb.create_sheet('2c_답변_채점기준')
+cols = ['규칙', '내용', '예']
+head(ws, '2c. 답변 채점 기준', '2b 시트의 측정 점수 부여 기준 · 사내 실정에 맞게 조정 가능', cols, [18, 68, 40], n_input=0)
+for i, row in enumerate(AG.SCORING_RULES, 5):
+    for j, v in enumerate(row, 1):
+        x = ws.cell(i, j, v); x.font = f(bold=(j == 1)); x.border = BOX; x.alignment = WRAP
+
+# ---------------- 8. 표준 지표 (RAGAS 계열) ----------------
+ws = wb.create_sheet('8_표준지표')
+cat = lab_ragas.catalog()
+cols = ['구분', '지표', '정의', '계산 방식', '합격 기준', '대응 단계', '측정값', '판정', '비고']
+head(ws, '8. 표준 지표 — 검색(IR) · 생성(RAGAS 계열) · 운영',
+     'nb10_answer_eval 로 auto 계산 · judge = 사내 LLM 채점 · manual = 20문항 표본 확인 · G · I 열 기입',
+     cols, [8, 20, 44, 14, 24, 18, 10, 9, 24], n_input=0)
+for i, r in enumerate(cat.itertuples(), 5):
+    for j, v in enumerate([r.구분, r.지표, r.정의, r._4, r._5, r._6, '', '', ''], 1):
+        x = ws.cell(i, j, v); x.font = f(bold=(j == 2)); x.border = BOX; x.alignment = WRAP
+        if j in (1, 4, 7, 8):
+            x.alignment = CEN
+        if j in (7, 9):
+            x.fill = INP
+    ws.cell(i, 8, f'=IF(G{i}="","","기준과 대조")').fill = CALC
+last = 4 + len(cat)
+ws.freeze_panes = 'A5'
+ws.auto_filter.ref = f'A4:{L(len(cols))}{last}'
+note = ['RAGAS 원 구현은 외부 LLM · 패키지 사용 → 여기서는 동일 정의를 사내 자원(임베딩 · 규칙 · 사내 LLM)으로 근사',
+        'auto 지표는 표현 차이로 과소평가 가능 → 20문항은 사람 교차 확인 권장',
+        'Faithfulness · Hallucination 은 상호 보완 — 둘 다 기록']
+for i, t in enumerate(note, last + 2):
+    x = ws.cell(i, 1, t); x.font = f(size=9, color='5C440C'); x.fill = F('F5EAD0'); x.border = BOX
+    ws.merge_cells(start_row=i, start_column=1, end_row=i, end_column=9)
+
 from openpyxl.workbook.properties import CalcProperties
 wb.calculation = CalcProperties(fullCalcOnLoad=True)
+wb._sheets = [wb[n] for n in ['0_안내', '1_골든셋_검수', '2_골든셋_확정', '2b_질의응답_골든셋', '2c_답변_채점기준',
+                              '3_평가_실행기록', '4_지표_정의', '8_표준지표', '5_전후비교', '6_문항별_결과', '7_답변평가']]
 wb.active = 0
 wb.save(OUT)
 print('saved', OUT, [w.title for w in wb.worksheets])

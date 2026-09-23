@@ -22,6 +22,7 @@ Spyder에서 셀 단위로 실행하고, 결과는 **Variable Explorer**의 Data
 | `nb07_sql_router.py` | **정형 데이터 연계** — 카탈로그 · 라우팅 · SQL 생성 · 정적 검증 · 실행 · 결합 · 평가(EX) → **S22~S29 (Phase 3)** |
 | `nb08_auto_eval.py` | **골든셋 없이 정량 평가** — 사내 DB 로 평가셋 자동 생성(known-item · 제목 · 중복쌍 · 합성 QA) · 기준 대비 판정 → **S15** |
 | `nb09_golden_build.py` | **골든셋 구성 → 정량 평가** — 자동셋 → 검수 시트 → 골든셋 확정 → 측정 → 실행 기록 · 문항별 결과 (골든_평가_팩 엑셀 연계) |
+| `nb10_answer_eval.py` | **답변 품질 정량 평가** — 표준 지표(Faithfulness · Answer Relevancy · Context Recall · Citation · Refusal 등) auto 계산 + 사내 LLM judge |
 | `lab_config.py` | 설정. **[사내 맞춤] 블록만 수정** |
 | `lab_io.py` | Oracle 읽기 · 샘플 · 결과 저장 |
 | `lab_text.py` | 토큰 수, 소스별 정제 규칙, 점검 지표, 헤더, 근사 중복(MinHash) |
@@ -31,6 +32,8 @@ Spyder에서 셀 단위로 실행하고, 결과는 **Variable Explorer**의 Data
 | `lab_sql.py` | 카탈로그 읽기 · 라우팅 · SQL 생성/검증/실행 · 실행결과 정확도 |
 | `lab_sample_sql.py` | 샘플 정형 DB(SQLite) · 정형 골든셋 (sample 모드 전용) |
 | `lab_autoeval.py` | 평가셋 자동 생성 · 합격 기준(CRITERIA) · 표본 오차 |
+| `lab_ragas.py` | 표준 지표 16종 — 검색(IR) · 생성(RAGAS 계열) · 운영 · LLM 채점 프롬프트 |
+| `golden/answer_golden_v1.csv` | 질의 · 답변 골든셋 60문항 (사외 정보 기반 · 필수 요소 채점) |
 | `catalog/metric_catalog_example.xlsx` | 지표 정의서 **예시** — 채운 파일은 `catalog/metric_catalog.xlsx` 로 저장 |
 | `golden/smoke20.csv` | 스모크 20문항 |
 | `golden/golden_v1.csv` | 골든셋 (비어 있음 — 직접 채움) · 예시는 `golden_v1_example.csv` |
