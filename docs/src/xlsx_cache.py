@@ -1,6 +1,7 @@
 # 수식 칸에 계산값(캐시)을 넣어 모바일 미리보기에서도 값이 보이게 한다.
 # 1) pycel로 모든 수식을 계산  2) 원본 데이터로 만든 기대값과 대조(검증)  3) xlsx XML의 <v>에 주입
 import sys, re, zipfile, shutil, html
+sys.setrecursionlimit(20000)   # pycel 은 큰 시트에서 파이썬 기본 재귀 한도에 걸린다
 from openpyxl import load_workbook
 from pycel import ExcelCompiler
 
@@ -15,6 +16,8 @@ def evaluate(path):
                     ref = f"'{ws.title}'!{c.coordinate}"
                     try:
                         v = xl.evaluate(ref)
+                    except RecursionError as ex:   # 대개 순환 참조 — 집계 수식이 자기 행을 포함
+                        v = None; errs.append((ref, repr(ex)[:80]))
                     except Exception as ex:
                         v = None; errs.append((ref, repr(ex)[:80]))
                     if isinstance(v, str) and v.startswith('#'):

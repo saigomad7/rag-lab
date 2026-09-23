@@ -13,6 +13,7 @@ Spyder에서 셀 단위로 실행하고, 결과는 **Variable Explorer**의 Data
 
 | 파일 | 역할 |
 |---|---|
+| `nb00_pipeline_check.py` | **적재 파이프라인 검증** — 통합 문서 · 메타 · 청킹 · 인덱싱 무결성 점검 · 미달 항목 목록 (평가 이전 필수) |
 | `nb01_inventory.py` | 소스별 문서·청크 수, 작성일 누락, 메타 채움률, 원문 저장 형태, 중복 → **S01 · S05** |
 | `nb02_parse_chunk.py` | 청크 길이·max_length 초과, 문장 잘림·표 깨짐·노이즈·헤더, 소스별 정제 전후 → **S02 · S03 · S04-1** |
 | `nb03_bm25_tokenizer.py` | 공백 / 조사 제거 / Kiwi 토크나이저 비교, BM25 적중률 → **S09** |
@@ -23,6 +24,8 @@ Spyder에서 셀 단위로 실행하고, 결과는 **Variable Explorer**의 Data
 | `nb08_auto_eval.py` | **골든셋 없이 정량 평가** — 사내 DB 로 평가셋 자동 생성(known-item · 제목 · 중복쌍 · 합성 QA) · 기준 대비 판정 → **S15** |
 | `nb09_golden_build.py` | **골든셋 구성 → 정량 평가** — 자동셋 → 검수 시트 → 골든셋 확정 → 측정 → 실행 기록 · 문항별 결과 (골든_평가_팩 엑셀 연계) |
 | `nb11_evidence_link.py` | **질문 ↔ 근거 문서 연결** — 질문 은행을 골든셋으로 전환 · 근거 확보율 · 수집 공백 목록 (검색 실패 / 문서 부재 구분) |
+| `nb12_golden_llm.py` | **LLM 기반 골든셋 생성** — 코퍼스 표본 → 질문 · 정답 · 근거 생성 → 자가 검증 → 검수 시트 → 확정 |
+| `nb13_langgraph_rag.py` | **LangGraph RAG · 고도화** — 노드별 실행 추적 · 프리셋별 지표 비교 · 개선 폭 정량화 · 퇴행 문항 |
 | `nb10_answer_eval.py` | **답변 품질 정량 평가** — 표준 지표(Faithfulness · Answer Relevancy · Context Recall · Citation · Refusal 등) auto 계산 + 사내 LLM judge |
 | `lab_config.py` | 설정. **[사내 맞춤] 블록만 수정** |
 | `lab_io.py` | Oracle 읽기 · 샘플 · 결과 저장 |
@@ -33,6 +36,9 @@ Spyder에서 셀 단위로 실행하고, 결과는 **Variable Explorer**의 Data
 | `lab_sql.py` | 카탈로그 읽기 · 라우팅 · SQL 생성/검증/실행 · 실행결과 정확도 |
 | `lab_sample_sql.py` | 샘플 정형 DB(SQLite) · 정형 골든셋 (sample 모드 전용) |
 | `lab_autoeval.py` | 평가셋 자동 생성 · 합격 기준(CRITERIA) · 표본 오차 |
+| `lab_pipeline.py` | 적재 무결성 점검 — 단계별 기준(CRITERIA) · 소스별 필수 메타 |
+| `lab_golden_llm.py` | LLM 골든셋 생성 · 자가 검증 · 유형 배분 · 검수 시트 |
+| `lab_graph.py` | LangGraph RAG 그래프(route · decompose · retrieve · grade · rewrite · generate · verify) · 프리셋 비교 |
 | `lab_ragas.py` | 표준 지표 16종 — 검색(IR) · 생성(RAGAS 계열) · 운영 · LLM 채점 프롬프트 |
 | `golden/answer_golden_v1.csv` | 질의 · 답변 골든셋 60문항 (사외 정보 기반 · 필수 요소 채점) |
 | `catalog/metric_catalog_example.xlsx` | 지표 정의서 **예시** — 채운 파일은 `catalog/metric_catalog.xlsx` 로 저장 |
