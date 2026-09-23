@@ -18,6 +18,7 @@ xlsx 는 엑셀에서 열어 직접 고치며 씁니다.
 |---|---|
 | `query_flow_example_rev2.html` | 질의 1건이 **비정형(문서) + 정형(DB)** 을 함께 도는 과정 + 부록 "지표 정의서는 이렇게 만든다" |
 | `smoke_test_20_rev1.html` | 스모크 테스트 20문항과 실패 유형 5종 · 집계표 (S07-1) |
+| `golden_eval_pack_rev1.xlsx` | **★ 사내 기입용** — 골든셋 검수 · 확정 · 평가 실행 기록 · 전후 비교(유의성 자동) · 문항별 개선/퇴행 · 답변 평가 |
 | `golden_set_example_rev1.xlsx` | **골든셋 실물 예시** — 수동 골든셋 · 자동 평가셋 3종(known-item · 제목 · 합성) · 정형 골든셋 · 스모크 20 (샘플 데이터로 실제 생성한 값) |
 | `rag_design_guide_rev4.html` | 설계 원본 — 아키텍처, 결정 D1~D6, Oracle · Milvus 스키마, Phase 2 센싱 설계 |
 | `rag_quest_board_rev4.html` | 항목별 **옵션 · 장단점 · 완료 조건** 사전 (Q00~Q40) |

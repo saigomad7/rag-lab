@@ -208,3 +208,47 @@ def sample_size_note(n):
         return ''
     half = 1.96 * (0.25 / n) ** 0.5
     return f'n={n} → 95% 신뢰구간 ±{half * 100:.1f}%p'
+
+
+# ---------------- 검수 시트 · 골든셋 파일 연계 ----------------
+REVIEW_COLS = ['qid', 'set', 'level', '질문(자동 생성)', '정답 문서', '정답 문장',
+               '검수 결과', '수정 질문', '수정 정답 문서', '폐기 사유', '검수자', '검수일']
+
+
+def to_review(sets):
+    """자동 생성 평가셋들 → 검수 시트(1_골든셋_검수) 붙여넣기용 DataFrame. sets: {이름: df}"""
+    rows = []
+    for name, df in sets.items():
+        for r in df.itertuples():
+            rows.append({'qid': r.qid, 'set': name, 'level': getattr(r, 'level', ''),
+                         '질문(자동 생성)': r.question, '정답 문서': r.gold_doc_ids,
+                         '정답 문장': getattr(r, 'gold_text', ''), '검수 결과': '', '수정 질문': '',
+                         '수정 정답 문서': '', '폐기 사유': '', '검수자': '', '검수일': ''})
+    return pd.DataFrame(rows, columns=REVIEW_COLS)
+
+
+def from_review(reviewed, q_type_default='사실'):
+    """검수 완료 시트 → golden_v1.csv 구조. 채택 · 수정 후 채택만 남기고 수정값을 반영."""
+    d = reviewed.fillna('')
+    keep = d[d['검수 결과'].isin(['채택', '수정 후 채택'])].copy()
+    q = keep.apply(lambda r: r['수정 질문'] or r['질문(자동 생성)'], axis=1)
+    g = keep.apply(lambda r: r['수정 정답 문서'] or r['정답 문서'], axis=1)
+    out = pd.DataFrame({
+        'qid': keep['qid'], 'question': q, 'q_type': q_type_default, 'source': '',
+        'gold_doc_ids': g, 'gold_text': keep['정답 문장'], 'level': keep['level'],
+        'origin': '자동-' + keep['set'].astype(str), 'memo': keep['폐기 사유']})
+    return out.reset_index(drop=True)
+
+
+def run_record(run_id, by_set, n_items, setting='', **kw):
+    """평가 결과 → 3_평가_실행기록 한 행 (엑셀에 붙여넣기용)."""
+    g = lambda k: float(by_set[k]) if k in by_set else None
+    return pd.DataFrame([{
+        'RUN_ID': run_id, '일자': pd.Timestamp.now().strftime('%Y-%m-%d'),
+        '평가셋 버전': kw.get('eval_ver', 'v1'), '문항수': n_items, '변경 설정(1개)': setting,
+        '청킹': kw.get('chunk', ''), '헤더': kw.get('header', ''), 'BM25 토크나이저': kw.get('tok', ''),
+        '리랭커': kw.get('rerank', ''), '후보수': kw.get('cand', ''),
+        'R@1': g('recall@1'), 'R@5': g('recall@5'), 'R@10': g('recall@10'),
+        'MRR': g('mrr'), 'nDCG@10': g('ndcg@10'),
+        '충실도': kw.get('faith', ''), '인용 정확도': kw.get('cite', ''), '모름 정확도': kw.get('noans', ''),
+        '비고': kw.get('note', '')}])

@@ -21,6 +21,7 @@ Spyder에서 셀 단위로 실행하고, 결과는 **Variable Explorer**의 Data
 | `nb06_retrieval_eval.py` | 골든셋으로 BM25 / Dense / Sparse / Hybrid(RRF) / +Rerank / +MMR 비교 → **S15 · S11 · S12** |
 | `nb07_sql_router.py` | **정형 데이터 연계** — 카탈로그 · 라우팅 · SQL 생성 · 정적 검증 · 실행 · 결합 · 평가(EX) → **S22~S29 (Phase 3)** |
 | `nb08_auto_eval.py` | **골든셋 없이 정량 평가** — 사내 DB 로 평가셋 자동 생성(known-item · 제목 · 중복쌍 · 합성 QA) · 기준 대비 판정 → **S15** |
+| `nb09_golden_build.py` | **골든셋 구성 → 정량 평가** — 자동셋 → 검수 시트 → 골든셋 확정 → 측정 → 실행 기록 · 문항별 결과 (골든_평가_팩 엑셀 연계) |
 | `lab_config.py` | 설정. **[사내 맞춤] 블록만 수정** |
 | `lab_io.py` | Oracle 읽기 · 샘플 · 결과 저장 |
 | `lab_text.py` | 토큰 수, 소스별 정제 규칙, 점검 지표, 헤더, 근사 중복(MinHash) |
