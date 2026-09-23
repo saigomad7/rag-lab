@@ -2,7 +2,7 @@
 """
 텍스트 점검 · 정제 — 소스 유형별 처리(청킹 전)
   - 토큰 수(BGE-M3 토크나이저 있으면 정확, 없으면 근사)
-  - 소스별 정제: 뉴스 노이즈 / 증권사 면책 · 반복 머리글 / 메일 인용 · 서명 / 지식문서 UI 문구
+  - 소스별 정제: 뉴스 노이즈 / 증권사 면책 · 반복 머리글 / 메일 인용 · 서명
   - 점검 지표: 문장 잘림, 표 깨짐 의심, 노이즈 잔존
   - 헤더 생성, 근사 중복(MinHash)
 """
@@ -45,7 +45,6 @@ NOISE = {
     'NEWS': [r'무단\s*전재.*', r'재배포\s*금지.*', r'저작권자\s*ⓒ.*', r'^관련기사.*', r'^-\s.*', r'\S+@\S+\.\S+', r'^\S+\s기자\s*$'],
     'BROKER': [r'Compliance Notice.*', r'본 자료는 투자 참고용.*', r'당사는 자료 작성일 현재.*'],
     'INSTITUTION': [r'^목차$', r'.*\.{5,}\s*\d+\s*$'],
-    'KNOWLEDGE': [r'.*이 문서를 편집.*', r'^메뉴\s*\|.*'],
 }
 EMAIL_CUT = [r'-{3,}\s*Original Message\s*-{3,}', r'^보낸 사람\s*:', r'^From\s*:', r'^-----.*원본 메시지']
 EMAIL_SIG = [r'^감사합니다\.?\s*$', r'.*\|\s*0\d{1,2}-\d{3,4}-\d{4}.*', r'.*\S+@\S+\.\S+.*', r'.*드림\s*$']
@@ -82,7 +81,7 @@ def clean(text, doc_type):
     text = text or ''
     if doc_type == 'EMAIL':
         text = clean_email(text)
-    if doc_type in ('BROKER', 'INSTITUTION', 'ENG_REPORT'):
+    if doc_type in ('BROKER', 'INSTITUTION', 'REPORT'):
         text = remove_repeated_lines(text)
     for p in NOISE.get(doc_type, []):
         text = re.sub(p, '', text, flags=re.M)

@@ -7,7 +7,7 @@ from openpyxl.formatting.rule import CellIsRule, FormulaRule
 from openpyxl.utils import get_column_letter as L
 
 with contextlib.redirect_stdout(io.StringIO()):
-    G = runpy.run_path('make_checklist_sheet_rev8.py')
+    G = runpy.run_path('make_checklist_sheet_rev9.py')
 P1A, P1B, P2, SMOKE = G['P1A'], G['P1B'], G['P2'], G['SMOKE']
 from sources_data import SOURCES, STAGES
 from flows_data import PRECHECK, FAMILIES, FLOWS
@@ -16,7 +16,7 @@ from columns_data import (COMMON_DOC, COMMON_BODY, COMMON_CHUNK, PER_SOURCE, NOT
                           ACL_SCHEMA, JSON_RULES, MAPPING_CASES)
 P3S = [(c, n, [(re.sub(r'</?b>', '', a), b, re.sub(r'</?b>', '', cc), d, e2) for a, b, cc, d, e2 in items]) for c, n, items in P3]
 
-OUT = 'rag_checklist_rev8.xlsx'
+OUT = 'rag_checklist_rev9.xlsx'
 FONT = '맑은 고딕'
 ST = {'done': '완료', 'doing': '확인중', 'todo': '미확인'}
 strip = lambda s: re.sub(r'<[^>]+>', '', s).replace('&gt;', '>')
@@ -69,7 +69,7 @@ def finish(ws, hdr_row, last_col, last_row):
 
 # ---------- 안내 ----------
 ws = wb.active; ws.title = '안내'
-title(ws, 'RAG 단계별 체크리스트 (엑셀판) rev.8', '2026-09-22 · rag_checklist_sheet_rev8.html 동일 내용 · 사내 현황 기입용', 4)
+title(ws, 'RAG 단계별 체크리스트 (엑셀판) rev.9', '2026-09-22 · rag_checklist_sheet_rev9.html 동일 내용 · 소스 7종 · 사내 현황 기입용', 4)
 rows = [
  ('용도', 'HTML 시트 rev8 엑셀판 · 사내 현황 기입용'),
  ('입력 칸', '연노랑 칸 한정 — 현 수준 · 상태(드롭다운) · 메모 · 문서 수 · 스모크 판정'),

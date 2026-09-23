@@ -117,12 +117,11 @@ MV = dict(
 # 사내 DOC_TYPE 코드 → 표준 9종. 왼쪽을 사내 코드로 바꾼다.
 DOC_TYPE_MAP = {
     'NEWS': 'NEWS', 'BROKER': 'BROKER', 'INSTITUTION': 'INSTITUTION',
-    'EMAIL': 'EMAIL', 'MEETING': 'MEETING', 'REPORT': 'REPORT',
-    'KNOWLEDGE': 'KNOWLEDGE', 'ENG_REPORT': 'ENG_REPORT', 'EXEC_REPORT': 'EXEC_REPORT',
+    'EMAIL': 'EMAIL', 'MEETING': 'MEETING', 'REPORT': 'REPORT', 'EXEC_REPORT': 'EXEC_REPORT',
 }
 DOC_TYPE_KO = {
     'NEWS': '뉴스', 'BROKER': '증권사', 'INSTITUTION': '기관', 'EMAIL': '메일', 'MEETING': '회의록',
-    'REPORT': '사내 보고서', 'KNOWLEDGE': '지식문서', 'ENG_REPORT': '엔지니어', 'EXEC_REPORT': '임원',
+    'REPORT': '사내 보고서', 'EXEC_REPORT': '임원',
 }
 
 # 기존 검색 API 요청 · 응답 모양 — 사내 API에 맞춰 바꾼다

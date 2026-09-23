@@ -1,0 +1,11 @@
+﻿qid,question,q_type,level,gold_doc_ids,gold_text,src_chunk
+T0001,3Q 메모리 수요 점검 v0.9 (초안),title,easy,R002,,
+T0002,3Q 메모리 수요 점검 v1.0,title,easy,R001,,
+T0003,"CXMT, DDR5 양산 확대",title,easy,N003,,
+T0004,메모리 3Q 프리뷰: 가격 상승 지속,title,easy,B001,,
+T0005,"마이크론, 히로시마 HBM 라인 증설",title,easy,N001,,
+T0006,마이크론 히로시마에 HBM 증설…5조원 투자,title,easy,N002,,
+T0007,3Q 경영 현안,title,easy,X001,,
+T0008,RE: 4Q 발주 조정 건,title,easy,E001,,
+T0009,글로벌 HBM 시장 전망 (2Q26 기준),title,easy,I001,,
+T0010,시장분석팀 주간회의,title,easy,M001,,

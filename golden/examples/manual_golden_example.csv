@@ -1,0 +1,12 @@
+﻿qid,question,q_type,source,gold_doc_ids,gold_text
+G01,마이크론의 히로시마 HBM 증설 투자 규모는?,사실,NEWS,N001;N002,투자 규모는 약 5조원
+G02,3분기 DRAM 계약가격 전망은?,수치,BROKER,B001,3분기 DRAM 계약가격은 전분기 대비 8% 상승
+G03,2026년 HBM 시장 규모는 얼마로 전망되나?,수치,INSTITUTION,I001,HBM 시장 규모는 520억 달러
+G04,고객사 A가 통보한 4Q 발주 변경 내용은?,사실,EMAIL,E001,4Q 발주를 10% 하향
+G05,주간회의에서 HBM 수요 관련 액션 아이템은?,사실,MEETING,M001,고객별 발주 재확인
+G06,당사 2026년 eSSD 수요 전망치는?,수치,REPORT,R001,120EB로 전년 대비 35% 증가
+G07,당사 하이퍼스케일러 CapEx 전망은?,사실,REPORT,R001,CapEx를 전년 대비 30% 증가
+G09,임원 보고에서 지적된 HBM 리스크는?,사실,EXEC_REPORT,X001,경쟁사 12단 인증 속도
+G10,CXMT의 DDR5 양산 계획은?,사실,NEWS,N003,DDR5 양산 비중을 연말까지 30%
+G11,하이닉스의 HBM 점유율 추정치는?,수치,BROKER,B001,SK하이닉스 55%
+G12,TSMC의 지난 분기 DRAM 출하량은?,답없음,-,,

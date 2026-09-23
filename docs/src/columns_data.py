@@ -140,24 +140,6 @@ PER_SOURCE = {
    ('file_format', '원본 형식', 'string', R, JSON, '파일 확장자', 'S02 파서 분기', '"PPTX"'),
    ('SECTION_PATH ← slide_no', '슬라이드 번호', 'VARCHAR2(1000 CHAR)', R, CHUNK, '청크 생성 시', '인용 위치', '슬라이드 7'),
  ]),
- 'KNOWLEDGE': ('지식문서', [
-   ('PUBLISHED_AT ← last_updated_at', '최종 수정일', 'DATE', M, COL, 'KMS → 공통 컬럼(작성일 대신)', 'S08 최신성', '2026-08-30'),
-   ('AUTHOR ← last_updated_by', '최종 수정자', 'VARCHAR2(200 CHAR)', R, COL, 'KMS → 공통 컬럼', '인용 · 문의처', '관리자'),
-   ('category', '분류', 'string', M, JSON, 'KMS 분류 체계', '표시 · 필터', '"용어 정의"'),
-   ('system_name', '대상 시스템 · 업무', 'string', R, JSON, 'KMS 속성', '표시 · 필터', '"MIS"'),
-   ('doc_status', '문서 상태', 'string', M, JSON, '현행 / 개정중 / 폐기', '폐기본 제외 (또는 IS_DELETED)', '"CURRENT"'),
-   ('related_docs', '관련 문서', 'array', O, JSON, 'KMS 링크', '추가 탐색', '["KB_0102"]'),
- ]),
- 'ENG_REPORT': ('엔지니어 보고서', [
-   ('ORG_NAME ← department', '작성 부서', 'VARCHAR2(200 CHAR)', M, COL, '문서 속성', '권한 · 필터', '○○개발팀'),
-   ('process', '공정', 'string', M, JSON, '문서 속성 · 본문', '표시 · 필터', '"TSV"'),
-   ('fab', 'Fab · 라인', 'string', R, JSON, '문서 속성', '표시 · 필터', '"M16"'),
-   ('test_item', '평가 항목', 'string', R, JSON, '본문 · 표 제목', '수치 질문', '"온도별 신뢰성"'),
-   ('spec_version', '규격 버전', 'string', O, JSON, '본문', '버전 구분', '"REL-2.3"'),
-   ('has_measure_table', '측정 표 포함', 'string(Y/N)', R, JSON, '파싱 결과', '표 청크 분리', '"Y"'),
-   ('product', '제품 태그', 'array', M, TAGS, '문서 속성 → 코드 사전', 'S24 라우팅 · 정형 연계', '["HBM4-12H"]'),
-   ('project_code', '과제 그룹', 'ACL 행', M, ACL, '문서 속성', 'S28 과제 그룹 권한', 'GROUP PRJ-HBM4-REL'),
- ]),
  'EXEC_REPORT': ('임원 보고서', [
    ('SECURITY_LEVEL', '보안 등급', 'NUMBER(1)', M, COL, '표지 표기 (등급 3 고정)', 'S10 · S28', '3'),
    ('ORG_NAME ← department', '보고 부서', 'VARCHAR2(200 CHAR)', M, COL, '표지', '필터 · 인용', '전략기획'),
@@ -214,19 +196,6 @@ JSON_SCHEMA = {
   "report_kind":     "시장동향",
   "period_covered":  "3Q26",
   "file_format":     "PPTX"
-}""",
- 'KNOWLEDGE': """{
-  "category":     "용어 정의",
-  "system_name":  "MIS",
-  "doc_status":   "CURRENT",
-  "related_docs": ["KB_0102"]
-}""",
- 'ENG_REPORT': """{
-  "process":           "TSV",
-  "fab":               "M16",
-  "test_item":         "온도별 신뢰성",
-  "spec_version":      "REL-2.3",
-  "has_measure_table": "Y"
 }""",
  'EXEC_REPORT': """{
   "report_to":       "CEO",
@@ -342,18 +311,6 @@ ORG_NAME       : 시장분석팀   AUTHOR : 최분석   FILE_PATH : \\\\fs01\\re
 META_EXTRA     : {"version":"v1.0","approval_status":"APPROVED","report_kind":"시장동향",
                   "period_covered":"3Q26","file_format":"PPTX"}
 -- v0.9 초안은 approval_status 로 걸러 적재하지 않음 / SECTION_PATH = "슬라이드 7\"""",
- 'KNOWLEDGE': """DOC_ID         : KNW_000317
-TITLE          : 용어 정의 — Sufficiency Ratio
-PUBLISHED_AT   : 2026-08-30   ← 최종 수정일을 넣는다   AUTHOR : 관리자(최종 수정자)
-META_EXTRA     : {"category":"용어 정의","system_name":"MIS","doc_status":"CURRENT",
-                  "related_docs":["KB_0102"]}
--- doc_status=OBSOLETE → IS_DELETED=Y 동기화""",
- 'ENG_REPORT': """DOC_ID         : ENG_20260902_000076        SECURITY_LEVEL : 2
-TITLE          : HBM4 12단 신뢰성 평가        ORG_NAME : ○○개발팀   PUBLISHED_AT : 2026-09-02
-TAGS           : {"product":["HBM4-12H"],"topic":["신뢰성"]}
-META_EXTRA     : {"process":"TSV","fab":"M16","test_item":"온도별 신뢰성",
-                  "spec_version":"REL-2.3","has_measure_table":"Y"}
--- RAG_DOC_ACL : (GROUP, 개발팀) (GROUP, PRJ-HBM4-REL)""",
  'EXEC_REPORT': """DOC_ID         : EXE_20260911_000009        SECURITY_LEVEL : 3
 TITLE          : 3Q 경영 현안                ORG_NAME : 전략기획   PUBLISHED_AT : 2026-09-11
 META_EXTRA     : {"report_to":"CEO","meeting_body":"경영회의","confidentiality":"CONFIDENTIAL",

@@ -51,12 +51,6 @@ _DOCS = [
   '[슬라이드 8] 하이퍼스케일러 CapEx\n당사는 2026년 하이퍼스케일러 CapEx를 전년 대비 30% 증가로 본다.'),
  ('R002', 'REPORT', '3Q 메모리 수요 점검 v0.9 (초안)', '시장분석팀', '최분석', '2026-09-02',
   '[슬라이드 7] eSSD 수요 전망\n2026년 eSSD 수요는 110EB로 전년 대비 30% 증가할 전망이다.'),
- ('K001', 'KNOWLEDGE', '용어 정의 — Sufficiency Ratio', 'MIS', '관리자', '2026-08-30',
-  '메뉴 | 홈 | 검색 | 이 문서를 편집\n# Sufficiency Ratio\n수급 충족률(Sufficiency Ratio)은 공급을 수요로 나눈 값이다. 1보다 크면 공급 과잉, 작으면 공급 부족을 뜻한다.\n'
-  '# 관련 문서\n- 수요 산출 방법'),
- ('G001', 'ENG_REPORT', 'HBM4 12단 신뢰성 평가', '○○개발팀', '엔지니어A', '2026-09-02',
-  '1. 목적\nHBM4 12단 제품의 온도별 신뢰성을 평가한다.\n표 3. 온도별 결과\n조건 불량률\n25C 0.01%\n85C 0.08%\n125C 0.35%\n'
-  '2. 결론\n125C 조건에서 TSV 관련 불량이 증가해 공정 조건 재검토가 필요하다.'),
  ('X001', 'EXEC_REPORT', '3Q 경영 현안', '전략기획', '보고자', '2026-09-11',
   '[슬라이드 2] 요약\nHBM 리스크: 경쟁사 12단 인증 속도, 고객 집중도 상승.\n[슬라이드 3] 대응\n고객 다변화와 차세대 조기 인증 추진.'),
 ]
@@ -69,7 +63,7 @@ def raw_docs():
         doc_id, typ, title, org, author, pub, body = d
         rows.append(dict(doc_id=doc_id, doc_type=typ, title=title, body=body, published_at=pub,
                          collected_at='2026-09-18', org_name=org, author=author,
-                         security_level={'EXEC_REPORT': 3, 'EMAIL': 2}.get(typ, 1 if typ in ('REPORT', 'MEETING', 'KNOWLEDGE', 'ENG_REPORT') else 0),
+                         security_level={'EXEC_REPORT': 3, 'EMAIL': 2}.get(typ, 1 if typ in ('REPORT', 'MEETING') else 0),
                          src_url=None, file_path=None))
     df = pd.DataFrame(rows)
     df['published_at'] = pd.to_datetime(df['published_at'])
@@ -96,8 +90,7 @@ def golden():
      ('G04', '고객사 A가 통보한 4Q 발주 변경 내용은?', '사실', 'EMAIL', 'E001', '4Q 발주를 10% 하향'),
      ('G05', '주간회의에서 HBM 수요 관련 액션 아이템은?', '사실', 'MEETING', 'M001', '고객별 발주 재확인'),
      ('G06', '당사 2026년 eSSD 수요 전망치는?', '수치', 'REPORT', 'R001', '120EB로 전년 대비 35% 증가'),
-     ('G07', 'Sufficiency Ratio 정의는?', '사실', 'KNOWLEDGE', 'K001', '공급을 수요로 나눈 값'),
-     ('G08', 'HBM4 12단 125도 조건 불량률은?', '수치', 'ENG_REPORT', 'G001', '125C 0.35%'),
+     ('G07', '당사 하이퍼스케일러 CapEx 전망은?', '사실', 'REPORT', 'R001', 'CapEx를 전년 대비 30% 증가'),
      ('G09', '임원 보고에서 지적된 HBM 리스크는?', '사실', 'EXEC_REPORT', 'X001', '경쟁사 12단 인증 속도'),
      ('G10', 'CXMT의 DDR5 양산 계획은?', '사실', 'NEWS', 'N003', 'DDR5 양산 비중을 연말까지 30%'),
      ('G11', '하이닉스의 HBM 점유율 추정치는?', '수치', 'BROKER', 'B001', 'SK하이닉스 55%'),
