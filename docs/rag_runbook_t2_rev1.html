@@ -1,0 +1,1126 @@
+<!DOCTYPE html>
+<html lang="ko"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RAG 구축 · 평가 실행 안내서 (T2)</title>
+<style>
+  :root{ /* T2 · Stone · Petrol (RPT-THEME-003) */
+    --ink:#111B1E; --ink2:#2A393D; --muted:#5B6A6E; --faint:#87959A;
+    --bg:#D8E0E1; --surface:#F7FAFA; --surface2:#ECF2F2; --line:#BFCACB; --hair:#D9E2E2;
+    --pri:#185463; --pri-wash:#DAEAED; --pri-line:#8BB5BE; --point:#185463;
+    --warn:#8F6209; --warn-wash:#F5EAD0; --warn-line:#DCC79B; --warn-ink:#5C440C;
+    --risk:#8C2F3E; --risk-wash:#F3DFE2; --risk-line:#D9A8B0; --risk-ink:#6B2430;
+    --dk:#111B1E; --dk-h:#F3F9FA; --dk-sd:#8FA1A5; --dk-kl:#7E9094; --dk-kv:#85CEDB; --dk-kn:#B4C4C7; --dk-th:#E4EDEE;
+    --ok:#2F6B4F; --ok-wash:#DFEDE5; --ok-line:#A6C9B6;
+    --t1:var(--pri);  --t1-w:var(--pri-wash);  --t1-l:var(--pri-line);
+    --t2:var(--warn); --t2-w:var(--warn-wash); --t2-l:var(--warn-line); --t2-bg:#FBF6EA;
+    --t3:#5B6A6E;     --t3-w:#E7EBEB;          --t3-l:#AEB7B7;
+    --sans:"Apple SD Gothic Neo","Malgun Gothic","Pretendard",system-ui,sans-serif;
+    --mono:"SFMono-Regular",Consolas,"D2Coding",monospace;
+  }
+  *{box-sizing:border-box;}
+  html{-webkit-text-size-adjust:100%;}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);
+    font-size:16px;line-height:1.75;letter-spacing:-0.01em;padding:0 20px 80px;
+    word-break:keep-all;overflow-wrap:break-word;}
+  .wrap{max-width:1180px;margin:0 auto;}
+
+  .cover{padding:52px 0 24px;border-bottom:2px solid var(--ink);}
+  .cover .kicker{font-family:var(--mono);font-size:11px;font-weight:500;
+    letter-spacing:0.22em;text-transform:uppercase;color:var(--pri);margin:0 0 16px;}
+  .cover h1{font-size:clamp(27px,4.2vw,42px);font-weight:700;line-height:1.2;letter-spacing:-0.035em;margin:0 0 14px;}
+  .cover .lede{font-size:clamp(15px,1.8vw,17.5px);font-weight:300;color:var(--ink2);max-width:70ch;margin:0 0 20px;line-height:1.7;}
+  .metaline{display:flex;flex-wrap:wrap;gap:8px 26px;font-family:var(--mono);font-size:11.5px;color:var(--muted);letter-spacing:0.04em;}
+  .metaline b{color:var(--ink);font-weight:500;}
+  .plain{background:var(--surface2);border-left:3px solid var(--pri);padding:12px 18px;margin:20px 0 0;border-radius:0 2px 2px 0;}
+  .plain p{margin:0;font-size:15px;color:var(--ink2);line-height:1.7;}
+  .plain b{color:var(--pri);font-weight:600;}
+
+  /* 표지 — 읽는 순서와 색 범례 */
+  .pages{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px 14px;margin:18px 0 0;}
+  .pages a{display:block;text-decoration:none;color:var(--ink2);background:var(--surface);
+    border:1px solid var(--line);border-radius:3px;padding:12px 14px;font-size:14px;line-height:1.55;}
+  .pages a:hover{border-color:var(--pri);}
+  .pages b{display:block;font-family:var(--mono);font-size:11px;letter-spacing:0.1em;color:var(--pri);font-weight:600;margin-bottom:3px;}
+  .legend{display:flex;flex-wrap:wrap;gap:6px 20px;margin:16px 0 0;font-size:14px;color:var(--ink2);align-items:center;}
+  .legend .lg-t{font-family:var(--mono);font-size:11px;letter-spacing:0.1em;color:var(--muted);}
+  .legend i{display:inline-block;width:12px;height:12px;border-radius:2px;margin-right:7px;vertical-align:-1px;}
+
+  .sec{padding:44px 0 10px;}
+  .sec + .sec{border-top:1px solid var(--line);}
+  .step-no{display:flex;align-items:center;gap:12px;margin-bottom:12px;}
+  .step-no .num{font-family:var(--mono);font-size:12px;font-weight:600;color:#fff;background:var(--pri);
+    width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+  .step-no .lbl{font-family:var(--mono);font-size:11px;letter-spacing:0.14em;text-transform:uppercase;color:var(--muted);}
+  .sec h2{font-size:clamp(22px,3vw,28px);font-weight:600;letter-spacing:-0.03em;line-height:1.32;margin:0 0 8px;}
+  .sec h2{text-wrap:balance;} .sec .how,.fig-c,.gl-c p{text-wrap:pretty;}
+  .sec .how{font-size:15.5px;color:var(--ink2);margin:0 0 4px;max-width:72ch;line-height:1.7;}
+  .sec .how b{color:var(--pri);font-weight:600;}
+
+  .fig{background:var(--surface);border:1px solid var(--line);border-radius:3px;padding:20px 20px 16px;margin:16px 0 8px;}
+  .fig-t{font-family:var(--mono);font-size:11px;letter-spacing:0.12em;text-transform:uppercase;color:var(--pri);
+    margin:0 0 14px;padding-bottom:9px;border-bottom:1px solid var(--hair);}
+  .fig-s{overflow-x:auto;}
+  .fig svg{display:block;width:100%;height:auto;min-width:980px;}
+  .fig-c{font-size:14px;color:var(--ink2);margin:12px 0 0;font-weight:400;line-height:1.7;padding-top:10px;border-top:1px solid var(--hair);}
+  .fig-c b{color:var(--ink);font-weight:600;}
+
+  /* 용어 풀이 */
+  .gloss{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px;margin:18px 0 8px;}
+  .gl-c{background:var(--surface);border:1px solid var(--line);border-top:3px solid var(--line);border-radius:3px;padding:14px 16px;}
+  .gl-c.t1{border-top-color:var(--t1);} .gl-c.t2{border-top-color:var(--t2);} .gl-c.t3{border-top-color:var(--t3);}
+  .gl-c h4{margin:0 0 4px;font-size:15.5px;font-weight:600;letter-spacing:-0.02em;}
+  .gl-c h4 span{font-family:var(--mono);font-size:11px;font-weight:500;color:var(--muted);letter-spacing:0.04em;margin-left:6px;}
+  .gl-c p{margin:0;font-size:14px;color:var(--ink2);line-height:1.65;}
+
+  /* ---------- SVG 공통 ---------- */
+  .sb{fill:#fff;stroke:var(--line);stroke-width:1.5;}
+  .sb-n{fill:#fff;stroke:var(--pri);stroke-width:1.5;stroke-dasharray:5 4;}
+  .sb-r{fill:var(--risk-wash);stroke:var(--risk-line);stroke-width:1.5;}
+  .en{fill:none;stroke:var(--pri);stroke-width:1.5;stroke-dasharray:6 5;}
+  .sl{stroke:var(--faint);stroke-width:1.6;fill:none;}
+  .sl-n{stroke:var(--ink2);stroke-width:1.6;fill:none;}
+  .sl-k{stroke:var(--pri);stroke-width:2;fill:none;}
+  .sl-kd{stroke:var(--pri);stroke-width:1.6;fill:none;stroke-dasharray:5 4;}
+  .sa{fill:var(--faint);} .sa-n{fill:var(--ink2);} .sa-k{fill:var(--pri);}
+
+  .rk{font-family:var(--mono);font-size:11px;font-weight:600;fill:var(--ink2);letter-spacing:0.6px;}
+  .rs{font-family:var(--sans);font-size:11.5px;fill:var(--muted);}
+  .k{font-family:var(--sans);font-size:14px;font-weight:600;fill:var(--ink);letter-spacing:-0.3px;}
+  .k15{font-family:var(--sans);font-size:15px;font-weight:700;fill:var(--ink);letter-spacing:-0.4px;}
+  .d{font-family:var(--sans);font-size:12.5px;font-weight:400;fill:var(--ink2);}
+  .gl{font-family:var(--sans);font-size:17px;font-weight:700;letter-spacing:-0.4px;}
+  .ht{font-family:var(--sans);font-size:13.5px;font-weight:600;fill:#fff;letter-spacing:-0.2px;}
+  .ht-c{font-family:var(--sans);font-size:13.5px;font-weight:600;fill:#fff;text-anchor:middle;letter-spacing:-0.2px;}
+  .hs{font-family:var(--sans);font-size:11.5px;fill:#fff;fill-opacity:.82;}
+  .hs-c{font-family:var(--sans);font-size:11.5px;fill:#fff;fill-opacity:.82;text-anchor:middle;}
+  .nm{font-family:var(--mono);font-size:11px;font-weight:600;fill:#fff;text-anchor:middle;}
+  .st{font-family:var(--sans);font-size:13.5px;font-weight:600;fill:var(--ink);text-anchor:middle;letter-spacing:-0.3px;}
+  .st-s{font-family:var(--sans);font-size:12.5px;font-weight:400;fill:var(--ink2);text-anchor:middle;}
+  .st-m{font-family:var(--mono);font-size:11px;fill:var(--muted);text-anchor:middle;letter-spacing:0.3px;}
+  .lvc{font-family:var(--mono);font-size:11.5px;font-weight:600;fill:var(--pri);text-anchor:middle;letter-spacing:0.3px;}
+  .tg{font-family:var(--mono);font-size:11px;font-weight:600;fill:var(--pri);text-anchor:middle;letter-spacing:0.6px;}
+  .ch{font-family:var(--mono);font-size:11.5px;font-weight:600;fill:var(--ink);letter-spacing:1px;}
+  .chs{font-family:var(--sans);font-size:12px;fill:var(--muted);text-anchor:end;}
+  .big{font-family:var(--sans);font-size:26px;font-weight:700;text-anchor:middle;letter-spacing:-0.6px;}
+  .lb{font-family:var(--sans);font-size:12px;fill:var(--ink2);text-anchor:middle;}
+  .ql{font-family:var(--sans);font-size:12.5px;fill:var(--ink2);text-anchor:middle;}
+  .c-h{font-family:var(--sans);font-size:18px;font-weight:700;fill:var(--dk-h);text-anchor:middle;letter-spacing:-0.5px;}
+  .c-s{font-family:var(--sans);font-size:12.5px;fill:var(--dk-kn);text-anchor:middle;}
+  .c-m{font-family:var(--mono);font-size:10.5px;fill:var(--dk-kl);text-anchor:middle;letter-spacing:1.5px;}
+
+  footer{padding:30px 0 0;font-family:var(--mono);font-size:11px;color:var(--faint);letter-spacing:0.05em;line-height:1.9;}
+
+  @media (max-width:640px){
+    body{padding:0 16px 60px;}
+    .fig{padding:14px 12px 12px;}
+  }
+  @page{size:A4 landscape;margin:9mm;}
+  @media print{
+    *{-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+    body{background:#fff;padding:0;font-size:12px;}
+    .cover{padding:0 0 6px;} .cover .lede,.pages{display:none;} .plain{margin-top:6px;padding:5px 12px;}
+    .legend{margin-top:6px;}
+    .sec{padding:8px 0 0;} .sec + .sec{border-top:0;break-before:page;}
+    .sec .how{display:none;}
+    .fig{padding:8px 10px;margin:6px 0 0;break-inside:avoid;}
+    .fig-s{overflow:visible;}
+    .fig svg{min-width:0;width:auto;max-width:100%;max-height:134mm;margin:0 auto;}
+    #b1{break-before:page;}
+    .fig-c{margin-top:5px;padding-top:5px;font-size:11.5px;}
+    .gl-c{break-inside:avoid;padding:8px 12px;} .gl-c p{font-size:12px;}
+    footer{display:none;}
+  }
+</style>
+<style>
+  /* ---------- 보고본 추가 컴포넌트 (지도 rev.7 CSS 위에 얹음) ---------- */
+  .msg{font-size:17px;font-weight:600;color:var(--ink);border-left:4px solid var(--t1);padding:3px 0 3px 14px;margin:6px 0 4px;line-height:1.6;max-width:80ch;}
+  .msg.t2{border-left-color:var(--t2);} .msg.t3{border-left-color:var(--t3);} .msg.ink{border-left-color:var(--ink);}
+  .kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:10px;margin:18px 0 0;}
+  .kpi{background:var(--dk);border-radius:3px;padding:14px 16px;}
+  .kpi .kl{display:block;font-family:var(--mono);font-size:10.5px;letter-spacing:.12em;color:var(--dk-kl);text-transform:uppercase;}
+  .kpi .kv{display:block;font-size:25px;font-weight:700;color:var(--dk-kv);letter-spacing:-.03em;margin:3px 0 1px;line-height:1.3;}
+  .kpi .kn{display:block;font-size:12.5px;color:var(--dk-kn);line-height:1.5;}
+
+  .tw{overflow-x:auto;margin:14px 0 6px;background:var(--surface);border:1px solid var(--line);border-radius:3px;}
+  .fig .tw{margin:0;border:0;}
+  .tw table{width:100%;border-collapse:collapse;font-size:14px;min-width:680px;}
+  .tw th{font-family:var(--mono);font-size:11px;letter-spacing:.06em;color:var(--muted);font-weight:600;text-align:left;
+    padding:9px 12px;border-bottom:1.5px solid var(--ink);background:var(--surface2);white-space:nowrap;}
+  .tw td{padding:8px 12px;border-bottom:1px solid var(--hair);vertical-align:top;color:var(--ink2);line-height:1.55;}
+  .tw tr:last-child td{border-bottom:0;}
+  .tw td.hd{font-weight:600;color:var(--ink);}
+  .tw td.grp{font-family:var(--mono);font-size:11px;font-weight:600;letter-spacing:.1em;color:var(--pri);background:var(--pri-wash);vertical-align:middle;white-space:nowrap;}
+  .tw td.lvl{font-family:var(--mono);font-size:12.5px;font-weight:600;color:var(--pri);white-space:nowrap;}
+  .tw td.c{text-align:center;font-size:15px;} .c.on{color:var(--pri);} .c.half{color:var(--warn);} .c.off{color:var(--faint);}
+  .tw tr.sum td{font-weight:600;color:var(--ink);background:var(--surface2);}
+  .tw td.mn{font-family:var(--mono);font-size:12px;white-space:nowrap;color:var(--muted);}
+  .tag{display:inline-block;font-family:var(--mono);font-size:10.5px;font-weight:600;padding:1px 6px;border-radius:2px;letter-spacing:.04em;white-space:nowrap;}
+  .tag.f{background:var(--pri-wash);color:var(--pri);} .tag.p{background:var(--warn-wash);color:var(--warn-ink);}
+  .tag.d{background:var(--t2);color:#fff;}
+  .sec h3{font-size:18px;font-weight:700;letter-spacing:-.02em;line-height:1.4;margin:28px 0 2px;}
+  .qx{font-size:14px;color:var(--ink2);margin:0 0 10px;} .qx b{color:var(--warn-ink);font-weight:600;}
+
+  .pts{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:12px;margin:14px 0 6px;}
+  .pt{background:var(--surface);border:1px solid var(--line);border-top:3px solid var(--t1);border-radius:3px;padding:14px 16px;}
+  .pt.t2{border-top-color:var(--t2);} .pt.t3{border-top-color:var(--t3);} .pt.risk{border-top-color:var(--risk);}
+  .pt .no{font-family:var(--mono);font-size:11px;font-weight:600;letter-spacing:.08em;color:var(--muted);}
+  .pt h4{margin:2px 0 6px;font-size:16px;font-weight:700;letter-spacing:-.02em;line-height:1.45;}
+  .pt p{margin:0;font-size:14px;color:var(--ink2);line-height:1.65;}
+  .pt p b{color:var(--ink);}
+  .pt .to{display:block;margin-top:9px;font-size:13px;font-weight:600;color:var(--t1);}
+  .pt.t2 .to{color:var(--t2);} .pt.t3 .to{color:var(--t3);}
+  .pts.q4{grid-template-columns:repeat(4,1fr);}
+  @media (max-width:900px){ .pts.q4{grid-template-columns:repeat(2,1fr);} }
+  @media (max-width:560px){ .pts.q4{grid-template-columns:1fr;} }
+
+  .lk{display:grid;grid-template-columns:180px 1fr;border:1px solid var(--line);border-radius:3px;background:#fff;margin:0 0 10px;}
+  .lk .lh{padding:11px 14px;border-right:1px solid var(--hair);background:var(--surface2);}
+  .lk .lh span{font-family:var(--mono);font-size:10.5px;color:var(--pri);font-weight:600;letter-spacing:.06em;}
+  .lk .lh b{display:block;font-size:15px;line-height:1.4;margin-top:2px;}
+  .lk .lh em{display:block;font-style:normal;font-size:12.5px;color:var(--muted);line-height:1.5;margin-top:3px;}
+  .flow{display:flex;flex-wrap:wrap;align-items:stretch;gap:6px;padding:11px 14px;}
+  .flow .nd{flex:1 1 118px;background:var(--surface);border:1px solid var(--line);border-radius:3px;padding:7px 10px;line-height:1.45;}
+  .flow .nd b{display:block;font-size:13.5px;color:var(--ink);}
+  .flow .nd small{display:block;font-size:12px;color:var(--muted);}
+  .flow .nd.end{border:1.5px solid var(--pri);background:var(--pri-wash);}
+  .flow .ar{align-self:center;color:var(--pri);font-weight:700;font-size:14px;}
+
+  .steps{display:grid;grid-template-columns:repeat(6,1fr);gap:8px;}
+  @media (max-width:900px){ .steps{grid-template-columns:repeat(3,1fr);} }
+  @media (max-width:560px){ .steps{grid-template-columns:repeat(2,1fr);} }
+  .sp{background:#fff;border:1px solid var(--line);border-radius:3px;padding:10px 12px;}
+  .sp .n{font-family:var(--mono);font-size:11px;font-weight:600;color:var(--muted);}
+  .sp b{display:block;font-size:14.5px;margin:1px 0 4px;line-height:1.4;}
+  .sp p{margin:0;font-size:12.5px;color:var(--ink2);line-height:1.5;}
+  .sp.key{border:1.5px solid var(--t2);background:var(--t2-bg);}
+
+  .two{display:grid;grid-template-columns:repeat(auto-fit,minmax(310px,1fr));gap:12px;margin:14px 0 6px;}
+  .pn{background:var(--surface);border:1px solid var(--line);border-radius:3px;padding:14px 16px;}
+  .pn h4{margin:0 0 2px;font-size:15.5px;font-weight:700;letter-spacing:-.02em;}
+  .pn .sub{margin:0 0 8px;font-size:13px;color:var(--muted);line-height:1.55;}
+  .pn ol{margin:0;padding:0;list-style:none;counter-reset:s;}
+  .pn li{position:relative;padding:6px 0 6px 30px;border-top:1px dashed var(--hair);font-size:14px;line-height:1.55;color:var(--ink2);}
+  .pn li:first-child{border-top:0;}
+  .pn li::before{counter-increment:s;content:counter(s);position:absolute;left:0;top:8px;width:20px;height:20px;border-radius:50%;
+    background:var(--t2);color:#fff;font-family:var(--mono);font-size:11px;font-weight:600;display:flex;align-items:center;justify-content:center;}
+  .pn.t1 li::before{background:var(--t1);} .pn.t3 li::before{background:var(--t3);}
+  .pn li b{color:var(--ink);}
+  .pn .ft{margin:10px 0 0;padding-top:8px;border-top:1px solid var(--hair);font-size:12.5px;color:var(--muted);line-height:1.6;}
+
+  .msg,.pt h4,.lk .lh b{text-wrap:balance;} .pt p,.pn li,.tw td,.sp p,.plain p{text-wrap:pretty;}
+  @media (max-width:640px){
+    .lk{grid-template-columns:1fr;} .lk .lh{border-right:0;border-bottom:1px solid var(--hair);}
+    .flow .ar{display:none;} .msg{font-size:16px;}
+  }
+  @media print{
+    .kpis{margin-top:8px;} .kpi{padding:8px 12px;} .kpi .kv{font-size:19px;}
+    .msg{font-size:13.5px;margin:2px 0;}
+    .tw,.pt,.lk,.pn,.sp{break-inside:avoid;} .tw table{min-width:0;font-size:11.5px;} .tw td,.tw th{padding:4px 8px;}
+    .pt,.pn{padding:8px 12px;} .pt p,.pn li{font-size:12px;} .pts,.two{margin-top:6px;}
+  }
+
+  /* 이 문서 추가 — 판정 · 주의 박스 */
+  .note{background:var(--pri-wash);border-left:4px solid var(--pri);padding:11px 16px;margin:14px 0 6px;font-size:14.5px;color:var(--ink2);line-height:1.7;}
+  .alert{background:var(--warn-wash);border-left:4px solid var(--warn);padding:11px 16px;margin:14px 0 6px;font-size:14.5px;color:var(--warn-ink);line-height:1.7;}
+  .bad{background:var(--risk-wash);border-left:4px solid var(--risk);padding:11px 16px;margin:14px 0 6px;font-size:14.5px;color:var(--risk-ink);line-height:1.7;}
+  .note b,.alert b,.bad b{font-weight:700;}
+  code{font-family:var(--mono);font-size:12.5px;background:var(--surface2);border:1px solid var(--hair);padding:1px 5px;border-radius:2px;color:var(--ink);}
+  .tw td code{white-space:nowrap;}
+  .sg{fill:var(--ok-wash);stroke:var(--ok-line);stroke-width:1.5;}
+  .sw{fill:var(--warn-wash);stroke:var(--warn-line);stroke-width:1.5;}
+  .sp2{fill:var(--pri-wash);stroke:var(--pri-line);stroke-width:1.5;}
+  .sd{fill:var(--dk);stroke:none;}
+  .sl-r{stroke:var(--risk);stroke-width:1.6;fill:none;} .sa-r{fill:var(--risk);}
+  .sl-w{stroke:var(--warn);stroke-width:1.6;fill:none;stroke-dasharray:5 4;} .sa-w{fill:var(--warn);}
+  .t-r{fill:var(--risk-ink);} .t-w{fill:var(--warn-ink);} .t-k{fill:var(--pri);} .t-o{fill:var(--ok);}
+  @media (max-width:640px){ .fig svg{min-width:760px;} }
+</style>
+</head><body>
+<div class="wrap">
+<header class="cover">
+  <p class="kicker">MIS · Market Intelligence / 사내 RAG 구축 · 평가 실행 안내서</p>
+  <h1>데이터가 제대로 모였는가 · 질문에 제대로 답하는가</h1>
+  <p class="lede">마케팅 마켓 인텔리전스 포털용 RAG — 수집부터 인덱싱까지 쌓은 데이터를 점검하고, 골든셋으로 정량 평가하고,
+  LangGraph 노드 구성을 바꿔가며 개선 폭을 수치로 남기는 절차. 도식 중심 안내서.</p>
+  <div class="metaline">
+    <span>문서 <b>RAG-RUNBOOK-T2 rev.1</b></span>
+    <span>기준 <b>rag_runbook_rev1 · 코드 rag_lab</b></span>
+    <span>대상 <b>사내 반입 · 실행 담당</b></span>
+    <span>환경 <b>Windows + Spyder</b></span>
+  </div>
+  <div class="plain"><p><b>요지</b> — 구축은 끝났으나 <b>측정한 적이 없는 상태</b>. 측정 없이 고치면 좋아졌는지 알 수 없음.
+  순서는 ① 적재 검증 → ② 골든셋 확보 → ③ 기준선 측정 → ④ 노드 단위 개선 → ⑤ 재측정. 앞 단계를 건너뛰면 뒤 단계 점수의 원인을 특정할 수 없음.</p></div>
+  <div class="kpis">
+    <div class="kpi"><span class="kl">실행 단위</span><span class="kv">노트북 14</span><span class="kn">셀 단위 실행 · 결과는 DataFrame</span></div>
+    <div class="kpi"><span class="kl">평가 지표</span><span class="kv">16종</span><span class="kn">검색 IR · 생성 RAGAS 계열 · 운영</span></div>
+    <div class="kpi"><span class="kl">노드 구성</span><span class="kv">v0 → v6</span><span class="kn">프리셋 7개 · 하나씩 켜며 비교</span></div>
+    <div class="kpi"><span class="kl">소스 유형</span><span class="kv">7종</span><span class="kn">외부 3 · 내부 4</span></div>
+  </div>
+  <div class="legend">
+    <span class="lg-t">색 규칙</span>
+    <span><i style="background:var(--pri)"></i>정상 흐름 · 기준</span>
+    <span><i style="background:var(--warn)"></i>조건부 되돌림 · 주의</span>
+    <span><i style="background:var(--risk)"></i>실패 · 차단</span>
+    <span><i style="background:var(--t3)"></i>보조 · 참고</span>
+  </div>
+  <nav class="pages">
+    <a href="#s1"><b>1 · 전체 그림</b>파이프라인 6단계 + 평가 순환 5단계</a>
+    <a href="#s2"><b>2 · 데이터가 쌓이는 길</b>소스 7종 → 통합 · 청크 테이블 구조</a>
+    <a href="#s3"><b>3 · 질문이 답이 되는 길</b>분해 · 하이브리드 · 리랭크 · 생성</a>
+    <a href="#s4"><b>4 · 어디서 틀어지는가</b>실패 3분류 · 원인 판별 흐름도</a>
+    <a href="#s5"><b>5 · 골든셋</b>3종 비교 · 생성 7단계 · 근거 연결</a>
+    <a href="#s6"><b>6 · 지표 읽기</b>무엇이 어디를 재는가 · 읽는 순서</a>
+    <a href="#s7"><b>7 · 고도화</b>노드 그래프 · 프리셋 계단 · 실험 1회차</a>
+    <a href="#s8"><b>8 · 실행 순서</b>3주 일정 · 준비물 · 파일 지도</a>
+    <a href="#s9"><b>+ 용어 풀이</b>12개</a>
+  </nav>
+</header>
+<section class="sec" id="s1">
+  <div class="step-no"><span class="num">1</span><span class="lbl">전체 그림</span></div>
+  <h2>두 개의 흐름 — 데이터를 쌓는 길, 그것을 확인하는 길</h2>
+  <p class="how">위쪽은 <b>이미 구축된 파이프라인</b>, 아래쪽은 <b>이번에 새로 붙이는 확인 · 개선 순환</b>. 둘을 잇는 지점이 ⑥ 적재 검증.</p>
+  <p class="msg ink">적재 검증을 통과한 구간만 평가 대상 — 미적재 질문은 검색 실패가 아니라 수집 과제</p>
+
+  <div class="fig">
+    <p class="fig-t">도식 1 · 전체 흐름</p>
+    <div class="fig-s">
+    <svg viewBox="0 0 1120 430" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <marker id="ar" markerWidth="9" markerHeight="9" refX="8" refY="3.2" orient="auto"><path d="M0,0 L8,3.2 L0,6.4 z" class="sa-k"/></marker>
+        <marker id="arw" markerWidth="9" markerHeight="9" refX="8" refY="3.2" orient="auto"><path d="M0,0 L8,3.2 L0,6.4 z" class="sa-w"/></marker>
+        <marker id="arn" markerWidth="9" markerHeight="9" refX="8" refY="3.2" orient="auto"><path d="M0,0 L8,3.2 L0,6.4 z" class="sa-n"/></marker>
+      </defs>
+
+      <text x="0" y="14" class="ch">A · 데이터 파이프라인 — 구축 완료</text>
+      <text x="1120" y="14" class="chs">원본 → 검색 가능한 상태</text>
+      <g class="sb"><rect x="0" y="26" width="168" height="72" rx="3"/><rect x="190" y="26" width="168" height="72" rx="3"/>
+        <rect x="380" y="26" width="168" height="72" rx="3"/><rect x="570" y="26" width="168" height="72" rx="3"/>
+        <rect x="760" y="26" width="168" height="72" rx="3"/></g>
+      <rect x="950" y="26" width="170" height="72" rx="3" class="sp2"/>
+      <g class="st"><text x="84" y="50">① 수집 · 파싱</text><text x="274" y="50">② 통합 · 메타</text><text x="464" y="50">③ 청킹</text>
+        <text x="654" y="50">④ 임베딩</text><text x="844" y="50">⑤ 인덱싱</text><text x="1035" y="50">⑥ 적재 검증</text></g>
+      <g class="st-s"><text x="84" y="70">외부 3 · 내부 4 소스</text><text x="84" y="87">원본 테이블 적재</text>
+        <text x="274" y="70">단일 문서 테이블</text><text x="274" y="87">공통컬럼 + JSON</text>
+        <text x="464" y="70">청크 테이블</text><text x="464" y="87">DOC_ID 로 연결</text>
+        <text x="654" y="70">BGE-M3</text><text x="654" y="87">dense + sparse</text>
+        <text x="844" y="70">Milvus</text><text x="844" y="87">필터 필드 복제</text>
+        <text x="1035" y="70">무결성 점검</text></g>
+      <text x="1035" y="88" class="st-m">nb00</text>
+      <g class="sl-k" marker-end="url(#ar)"><line x1="168" y1="62" x2="186" y2="62"/><line x1="358" y1="62" x2="376" y2="62"/>
+        <line x1="548" y1="62" x2="566" y2="62"/><line x1="738" y1="62" x2="756" y2="62"/><line x1="928" y1="62" x2="946" y2="62"/></g>
+
+      <path d="M1035,98 L1035,128 L560,128 L560,158" class="sl-k" marker-end="url(#ar)"/>
+      <rect x="360" y="108" width="400" height="0" fill="none"/>
+      <text x="560" y="122" class="st-m">미달 0 건일 때만 아래로 진행</text>
+
+      <text x="0" y="176" class="ch">B · 확인 · 개선 순환 — 이번에 붙이는 부분</text>
+      <text x="1120" y="176" class="chs">측정 → 개선 → 재측정</text>
+      <g class="sb"><rect x="0" y="190" width="200" height="78" rx="3"/><rect x="230" y="190" width="200" height="78" rx="3"/>
+        <rect x="460" y="190" width="200" height="78" rx="3"/><rect x="690" y="190" width="200" height="78" rx="3"/>
+        <rect x="920" y="190" width="200" height="78" rx="3"/></g>
+      <g class="st"><text x="100" y="216">⑦ 골든셋</text><text x="330" y="216">⑧ 검색 평가</text><text x="560" y="216">⑨ 답변 평가</text>
+        <text x="790" y="216">⑩ 노드 개선</text><text x="1020" y="216">⑪ 이력 기록</text></g>
+      <g class="st-s"><text x="100" y="236">질문 + 정답 + 근거</text><text x="100" y="253">LLM 이 문서에서 생성</text>
+        <text x="330" y="236">정답 문서를 찾는가</text><text x="330" y="253">Recall · MRR · nDCG</text>
+        <text x="560" y="236">근거대로 답하는가</text><text x="560" y="253">충실도 · 정확도 · 인용</text>
+        <text x="790" y="236">프리셋 v0 → v6</text><text x="790" y="253">하나씩 켜며 비교</text>
+        <text x="1020" y="236">회차별 지표 · 판정</text><text x="1020" y="253">개선 · 퇴행 기록</text></g>
+      <g class="st-m"><text x="100" y="264">nb12 · nb11</text><text x="330" y="264">nb06 · nb08</text><text x="560" y="264">nb10</text>
+        <text x="790" y="264">nb13</text><text x="1020" y="264">이력 대장 엑셀</text></g>
+      <g class="sl-k" marker-end="url(#ar)"><line x1="200" y1="228" x2="226" y2="228"/><line x1="430" y1="228" x2="456" y2="228"/>
+        <line x1="660" y1="228" x2="686" y2="228"/><line x1="890" y1="228" x2="916" y2="228"/></g>
+      <path d="M1020,268 L1020,300 L790,300 L790,272" class="sl-kd" marker-end="url(#ar)"/>
+      <text x="905" y="316" class="st-m">개선되면 유지 · 퇴행이면 되돌림</text>
+
+      <rect x="0" y="336" width="1120" height="34" rx="3" class="sw"/>
+      <text x="16" y="358" class="d t-w">골든셋이 없으면 ⑧ ⑨ ⑩ 이 모두 성립하지 않음 — 그래서 ⑦ 이 실질적인 첫 관문</text>
+      <rect x="0" y="380" width="1120" height="34" rx="3" class="sp2"/>
+      <text x="16" y="402" class="d t-k">A 는 이미 돌고 있음. 이번 작업은 A 를 멈추지 않고 B 만 새로 붙이는 것 — 읽기 전용 계정으로 충분</text>
+    </svg>
+    </div>
+    <p class="fig-c"><b>읽는 법</b> — 실선 화살표는 정상 진행, 점선은 되돌림. ⑥ 에서 미달이 나오면 아래로 내려가지 않고 A 를 고친다.</p>
+  </div>
+
+  <div class="pts q4">
+    <div class="pt"><span class="no">확인 1</span><h4>잘 모였는가</h4>
+      <p>문서 ID 유일성 · 본문 · 날짜 · 소스별 메타 충족률 · 고아 청크 · 인덱싱 건수 일치</p><span class="to">nb00</span></div>
+    <div class="pt t2"><span class="no">확인 2</span><h4>잘 찾는가</h4>
+      <p>정답 문서가 상위 k 안에 들어오는가. 검색 방식별로 얼마나 다른가</p><span class="to">nb06 · nb08</span></div>
+    <div class="pt t3"><span class="no">확인 3</span><h4>잘 답하는가</h4>
+      <p>근거에 있는 내용만 말하는가. 자료가 없으면 없다고 하는가</p><span class="to">nb10</span></div>
+    <div class="pt risk"><span class="no">확인 4</span><h4>고치면 좋아지는가</h4>
+      <p>노드를 켰을 때 점수가 오르는가. 오차 범위를 넘는 차이인가</p><span class="to">nb13</span></div>
+  </div>
+</section><section class="sec" id="s2">
+  <div class="step-no"><span class="num">2</span><span class="lbl">데이터가 쌓이는 길</span></div>
+  <h2>소스 7종이 하나의 테이블로 — 그리고 청크로 쪼개진다</h2>
+  <p class="how">소스마다 생김새가 다르므로 <b>파싱 방식이 갈리고</b>, 그 다음부터는 같은 테이블 구조로 합쳐진다. 청크는 DOC_ID 로 원문에 연결된다.</p>
+
+  <div class="fig">
+    <p class="fig-t">도식 2 · 수집에서 인덱싱까지</p>
+    <div class="fig-s">
+    <svg viewBox="0 0 1120 470" xmlns="http://www.w3.org/2000/svg">
+      <defs><marker id="a2" markerWidth="9" markerHeight="9" refX="8" refY="3.2" orient="auto"><path d="M0,0 L8,3.2 L0,6.4 z" class="sa-k"/></marker>
+      <marker id="a2n" markerWidth="9" markerHeight="9" refX="8" refY="3.2" orient="auto"><path d="M0,0 L8,3.2 L0,6.4 z" class="sa"/></marker></defs>
+
+      <text x="0" y="14" class="ch">소스 유형</text>
+      <text x="250" y="14" class="ch">파싱 계열</text>
+      <text x="520" y="14" class="ch">통합 문서 테이블</text>
+      <text x="800" y="14" class="ch">청크 테이블</text>
+      <text x="1000" y="14" class="ch">벡터 인덱스</text>
+
+      <g class="sb">
+        <rect x="0" y="26" width="150" height="34" rx="3"/><rect x="0" y="66" width="150" height="34" rx="3"/>
+        <rect x="0" y="106" width="150" height="34" rx="3"/><rect x="0" y="152" width="150" height="34" rx="3"/>
+        <rect x="0" y="192" width="150" height="34" rx="3"/><rect x="0" y="232" width="150" height="34" rx="3"/>
+        <rect x="0" y="272" width="150" height="34" rx="3"/>
+      </g>
+      <g class="k"><text x="12" y="48">뉴스</text><text x="12" y="88">증권사 리포트</text><text x="12" y="128">기관 자료</text>
+        <text x="12" y="174">메일</text><text x="12" y="214">회의록</text><text x="12" y="254">사내 보고서</text><text x="12" y="294">임원 보고서</text></g>
+      <text x="0" y="318" class="rs">외부 3종 · 내부 4종</text>
+
+      <g class="sw"><rect x="250" y="26" width="160" height="50" rx="3"/><rect x="250" y="86" width="160" height="50" rx="3"/>
+        <rect x="250" y="160" width="160" height="50" rx="3"/><rect x="250" y="220" width="160" height="50" rx="3"/></g>
+      <g class="st"><text x="330" y="46">웹 텍스트</text><text x="330" y="106">PDF · 표</text><text x="330" y="180">오피스 문서</text><text x="330" y="240">메일 형식</text></g>
+      <g class="st-s"><text x="330" y="64">광고 · 말머리 제거</text><text x="330" y="124">표는 별도 청크</text>
+        <text x="330" y="198">슬라이드 · 머리말</text><text x="330" y="258">인용 · 서명 제거</text></g>
+
+      <g class="sl" marker-end="url(#a2n)">
+        <path d="M150,43 L246,45"/><path d="M150,83 L246,105"/><path d="M150,123 L246,111"/>
+        <path d="M150,169 L246,240"/><path d="M150,209 L246,180"/><path d="M150,249 L246,186"/><path d="M150,289 L246,192"/>
+      </g>
+
+      <rect x="520" y="26" width="230" height="244" rx="3" class="sb"/>
+      <rect x="520" y="26" width="230" height="30" rx="3" class="sd"/>
+      <text x="635" y="46" class="ht-c">RAG_RAW_DOC</text>
+      <g class="d"><text x="534" y="76">DOC_ID · 원천 키</text><text x="534" y="96">DOC_TYPE · 소스 유형</text>
+        <text x="534" y="116">TITLE · ORG_NAME</text><text x="534" y="136">PUBLISHED_AT · COLLECTED_AT</text>
+        <text x="534" y="156">BODY_TEXT · CLEAN_BODY</text><text x="534" y="176">SUMMARY · KEY_POINTS</text>
+        <text x="534" y="196">SECURITY_LEVEL · CONTENT_HASH</text></g>
+      <rect x="534" y="208" width="202" height="50" rx="3" class="sw"/>
+      <text x="544" y="226" class="d t-w">META_EXTRA (JSON)</text>
+      <text x="544" y="246" class="rs">소스별 고유 항목 — 유형마다 다름</text>
+      <text x="520" y="290" class="rs">공통 컬럼 + JSON 으로 7종을 한 테이블에</text>
+
+      <g class="sl-k" marker-end="url(#a2)"><line x1="410" y1="51" x2="516" y2="90"/><line x1="410" y1="111" x2="516" y2="110"/>
+        <line x1="410" y1="185" x2="516" y2="140"/><line x1="410" y1="245" x2="516" y2="160"/></g>
+
+      <rect x="800" y="26" width="170" height="180" rx="3" class="sb"/>
+      <rect x="800" y="26" width="170" height="30" rx="3" class="sd"/>
+      <text x="885" y="46" class="ht-c">RAG_CHUNK</text>
+      <g class="d"><text x="812" y="76">CHUNK_ID</text><text x="812" y="96" class="t-k">DOC_ID ← 연결</text>
+        <text x="812" y="116">CHUNK_SEQ</text><text x="812" y="136">CHUNK_TEXT</text>
+        <text x="812" y="156">HEADER_TEXT</text><text x="812" y="176">TOKEN_CNT</text></g>
+      <text x="800" y="224" class="rs">문서 1건 → 청크 N건</text>
+      <line x1="750" y1="120" x2="796" y2="120" class="sl-k" marker-end="url(#a2)"/>
+      <text x="773" y="112" class="st-m">청킹</text>
+
+      <rect x="1000" y="26" width="120" height="180" rx="3" class="sp2"/>
+      <text x="1060" y="52" class="st">Milvus</text>
+      <g class="st-s"><text x="1060" y="74">dense</text><text x="1060" y="92">sparse</text>
+        <text x="1060" y="110">doc_type</text><text x="1060" y="128">published_at</text></g>
+      <text x="1060" y="156" class="st-m">청크 1건</text><text x="1060" y="172" class="st-m">= 1 entity</text>
+      <line x1="970" y1="120" x2="996" y2="120" class="sl-k" marker-end="url(#a2)"/>
+      <text x="983" y="112" class="st-m">임베딩</text>
+
+      <rect x="0" y="342" width="1120" height="52" rx="3" class="sp2"/>
+      <text x="16" y="364" class="k15 t-k">nb00 이 여기서 확인하는 것</text>
+      <text x="16" y="384" class="d">DOC_ID 중복 · 본문 결측 · 날짜 결측 · 소스별 메타 충족률 · 청킹 누락 문서 · 고아 청크(원문 없는 청크) · 순번 결손 · 초단문 청크 · Milvus 건수 불일치</text>
+      <rect x="0" y="404" width="1120" height="52" rx="3" class="sw"/>
+      <text x="16" y="426" class="k15 t-w">자주 나오는 미달</text>
+      <text x="16" y="446" class="d t-w">뉴스 재송고로 본문 중복 · 메일 날짜 결측 · PDF 표가 깨져 초단문 청크 양산 · 임베딩 실패분만큼 Milvus 건수 부족</text>
+    </svg>
+    </div>
+    <p class="fig-c"><b>핵심</b> — 소스별로 갈리는 것은 <b>파싱까지</b>. 그 뒤는 같은 구조이므로, 소스 고유 항목은 <code>META_EXTRA</code> JSON 에 담아 한 테이블로 유지한다.</p>
+  </div>
+
+  <h3>2-1. 왜 청크로 쪼개는가</h3>
+  <div class="fig">
+    <p class="fig-t">도식 3 · 문서 1건이 검색 단위가 되기까지</p>
+    <div class="fig-s">
+    <svg viewBox="0 0 1120 210" xmlns="http://www.w3.org/2000/svg">
+      <defs><marker id="a3" markerWidth="9" markerHeight="9" refX="8" refY="3.2" orient="auto"><path d="M0,0 L8,3.2 L0,6.4 z" class="sa-k"/></marker></defs>
+      <rect x="0" y="20" width="190" height="150" rx="3" class="sb"/>
+      <text x="95" y="44" class="st">원문 1건</text>
+      <g class="rs"><text x="16" y="66">· 12,000 자</text><text x="16" y="86">· 여러 주제가 섞임</text>
+        <text x="16" y="106">· 통째로는 임베딩 불가</text><text x="16" y="126">· 답에 쓸 부분은 3 문장</text></g>
+      <text x="95" y="158" class="st-m">RAG_RAW_DOC</text>
+
+      <line x1="190" y1="95" x2="246" y2="95" class="sl-k" marker-end="url(#a3)"/>
+      <text x="218" y="86" class="st-m">청킹</text>
+
+      <g class="sb"><rect x="250" y="20" width="150" height="44" rx="3"/><rect x="250" y="74" width="150" height="44" rx="3"/>
+        <rect x="250" y="128" width="150" height="44" rx="3"/></g>
+      <g class="st"><text x="325" y="40">청크 1</text><text x="325" y="94">청크 2</text><text x="325" y="148">청크 3</text></g>
+      <g class="st-s"><text x="325" y="56">300~800 자 · 문단 경계</text><text x="325" y="110">표는 통째로 한 청크</text><text x="325" y="164">앞뒤 겹침으로 문맥 유지</text></g>
+
+      <line x1="400" y1="95" x2="456" y2="95" class="sl-k" marker-end="url(#a3)"/>
+      <rect x="460" y="40" width="250" height="110" rx="3" class="sp2"/>
+      <text x="585" y="64" class="st">검색은 청크 단위</text>
+      <g class="st-s"><text x="585" y="86">질문과 가장 가까운 조각만 회수</text>
+        <text x="585" y="106">LLM 컨텍스트에 6개 내외 투입</text><text x="585" y="126">출처는 DOC_ID 로 원문 추적</text></g>
+
+      <line x1="710" y1="95" x2="766" y2="95" class="sl-k" marker-end="url(#a3)"/>
+      <rect x="770" y="20" width="350" height="64" rx="3" class="sw"/>
+      <text x="786" y="44" class="k t-w">너무 크게 자르면</text>
+      <text x="786" y="66" class="d t-w">관련 없는 내용이 섞여 답변 정확도 하락 · 토큰 초과로 뒤가 잘림</text>
+      <rect x="770" y="100" width="350" height="64" rx="3" class="sw"/>
+      <text x="786" y="124" class="k t-w">너무 작게 자르면</text>
+      <text x="786" y="146" class="d t-w">문맥이 끊겨 뜻이 안 통함 · 같은 문서 조각이 상위를 독점</text>
+    </svg>
+    </div>
+    <p class="fig-c">청크 크기는 <b>정답이 하나 있음</b>이 아니라 <b>측정해서 고르는 값</b>. nb02 에서 길이 분포를, nb06 에서 크기별 Recall 을 확인한다.</p>
+  </div>
+</section><section class="sec" id="s3">
+  <div class="step-no"><span class="num">3</span><span class="lbl">질문이 답이 되는 길</span></div>
+  <h2>질문 하나가 답변이 되기까지 — 여덟 번 손을 탄다</h2>
+  <p class="how">각 단계가 무엇을 바꾸는지 알아야, 점수가 낮을 때 <b>어느 단계를 손볼지</b> 정할 수 있다.</p>
+
+  <div class="fig">
+    <p class="fig-t">도식 4 · 검색 · 생성 파이프라인</p>
+    <div class="fig-s">
+    <svg viewBox="0 0 1120 450" xmlns="http://www.w3.org/2000/svg">
+      <defs><marker id="a4" markerWidth="9" markerHeight="9" refX="8" refY="3.2" orient="auto"><path d="M0,0 L8,3.2 L0,6.4 z" class="sa-k"/></marker>
+      <marker id="a4w" markerWidth="9" markerHeight="9" refX="8" refY="3.2" orient="auto"><path d="M0,0 L8,3.2 L0,6.4 z" class="sa-w"/></marker></defs>
+
+      <rect x="0" y="30" width="150" height="60" rx="3" class="sd"/>
+      <text x="75" y="56" class="c-h">질문</text>
+      <text x="75" y="76" class="c-s">"HBM 증설 영향은?"</text>
+
+      <line x1="150" y1="60" x2="186" y2="60" class="sl-k" marker-end="url(#a4)"/>
+      <rect x="190" y="30" width="150" height="60" rx="3" class="sb"/>
+      <text x="265" y="54" class="st">① 질의 분해</text>
+      <text x="265" y="74" class="st-s">복합 질문 → 하위 2~3개</text>
+
+      <line x1="340" y1="60" x2="376" y2="60" class="sl-k" marker-end="url(#a4)"/>
+      <rect x="380" y="16" width="170" height="40" rx="3" class="sb"/>
+      <text x="465" y="34" class="st">② BM25</text><text x="465" y="50" class="st-s">단어가 그대로 있는 문서</text>
+      <rect x="380" y="64" width="170" height="40" rx="3" class="sb"/>
+      <text x="465" y="82" class="st">③ 시맨틱</text><text x="465" y="98" class="st-s">뜻이 비슷한 문서</text>
+      <path d="M340,60 L360,60 L360,36 L376,36" class="sl-k" fill="none" marker-end="url(#a4)"/>
+      <path d="M340,60 L360,60 L360,84 L376,84" class="sl-k" fill="none" marker-end="url(#a4)"/>
+
+      <path d="M550,36 L570,36 L570,60 L586,60" class="sl-k" fill="none" marker-end="url(#a4)"/>
+      <path d="M550,84 L570,84 L570,60 L586,60" class="sl-k" fill="none" marker-end="url(#a4)"/>
+      <rect x="590" y="30" width="150" height="60" rx="3" class="sp2"/>
+      <text x="665" y="54" class="st">④ 결합 (RRF)</text>
+      <text x="665" y="74" class="st-s">두 순위를 하나로</text>
+
+      <line x1="740" y1="60" x2="776" y2="60" class="sl-k" marker-end="url(#a4)"/>
+      <rect x="780" y="30" width="150" height="60" rx="3" class="sb"/>
+      <text x="855" y="54" class="st">⑤ 리랭크</text>
+      <text x="855" y="74" class="st-s">질문·문단 쌍으로 재채점</text>
+
+      <line x1="930" y1="60" x2="966" y2="60" class="sl-k" marker-end="url(#a4)"/>
+      <rect x="970" y="30" width="150" height="60" rx="3" class="sb"/>
+      <text x="1045" y="54" class="st">⑥ MMR</text>
+      <text x="1045" y="74" class="st-s">중복 접기 · 문서당 상한</text>
+
+      <path d="M1045,90 L1045,116 L265,116 L265,142" class="sl-k" fill="none" marker-end="url(#a4)"/>
+      <rect x="190" y="142" width="150" height="60" rx="3" class="sb"/>
+      <text x="265" y="166" class="st">⑦ 컨텍스트</text>
+      <text x="265" y="186" class="st-s">상위 6개 + 출처 라벨</text>
+
+      <line x1="340" y1="172" x2="376" y2="172" class="sl-k" marker-end="url(#a4)"/>
+      <rect x="380" y="142" width="170" height="60" rx="3" class="sb"/>
+      <text x="465" y="166" class="st">⑧ LLM 답변</text>
+      <text x="465" y="186" class="st-s">근거 안에서만 · 인용 표기</text>
+
+      <line x1="550" y1="172" x2="586" y2="172" class="sl-k" marker-end="url(#a4)"/>
+      <rect x="590" y="142" width="530" height="60" rx="3" class="sg"/>
+      <text x="606" y="166" class="k t-o">답변 + 인용 [1] [3] + 시점 표기</text>
+      <text x="606" y="188" class="d">근거가 없으면 "확인된 자료 없음" — 지어내지 않는 것이 규칙</text>
+
+      <text x="0" y="238" class="ch">각 단계가 바꾸는 것</text>
+      <g class="sb"><rect x="0" y="250" width="270" height="92" rx="3"/><rect x="286" y="250" width="270" height="92" rx="3"/>
+        <rect x="572" y="250" width="270" height="92" rx="3"/><rect x="858" y="250" width="262" height="92" rx="3"/></g>
+      <g class="k"><text x="14" y="272">① 분해</text><text x="300" y="272">② + ③ 하이브리드</text><text x="586" y="272">⑤ 리랭크</text><text x="872" y="272">⑥ MMR</text></g>
+      <g class="d"><text x="14" y="294">비교 · 다단 질문에서</text><text x="14" y="314">놓치던 문서를 회수</text>
+        <text x="300" y="294">단어가 달라도 찾고</text><text x="300" y="314">고유명사도 놓치지 않음</text>
+        <text x="586" y="294">순서를 바로잡음</text><text x="586" y="314">Recall 보다 MRR · nDCG</text>
+        <text x="872" y="294">같은 문서 반복 제거</text><text x="872" y="314">컨텍스트 낭비 방지</text></g>
+      <g class="st-m"><text x="135" y="334">Recall ↑</text><text x="421" y="334">Recall ↑</text><text x="707" y="334">MRR ↑ · 지연 ↑</text><text x="989" y="334">Context Precision ↑</text></g>
+
+      <rect x="0" y="358" width="1120" height="36" rx="3" class="sp2"/>
+      <text x="16" y="381" class="d t-k"><tspan class="k15 t-k">RRF 와 MMR 은 대체 관계가 아님</tspan> — RRF 는 ④ 결합(서로 다른 순위를 합치는 자리), MMR 은 ⑥ 다양성(순위가 정해진 뒤 중복을 접는 자리)</text>
+      <rect x="0" y="404" width="1120" height="36" rx="3" class="sw"/>
+      <text x="16" y="427" class="d t-w">①~⑥ 이 아무리 좋아도 원문이 없으면 답이 나오지 않음 — 2장의 적재 검증이 먼저인 이유</text>
+    </svg>
+    </div>
+    <p class="fig-c"><b>점수와 단계의 대응</b> — Recall 이 낮으면 ①~④, MRR 이 낮으면 ⑤, 답변만 이상하면 ⑦ ⑧ 을 본다. 6장에서 지표별로 다시 정리한다.</p>
+  </div>
+
+  <div class="two">
+    <div class="pn t1"><h4>BM25 — 글자 그대로 찾기</h4>
+      <p class="sub">질문에 쓴 단어가 문서에 있는지로 점수를 매김</p>
+      <ol>
+        <li><b>강점</b> — 제품명 · 코드 · 고유명사에 정확함</li>
+        <li><b>약점</b> — "증설"로 물으면 "캐파 확대"를 못 찾음</li>
+        <li><b>한국어 함정</b> — 조사가 붙어 "HBM을"과 "HBM"이 다른 단어로 취급됨</li>
+        <li><b>처방</b> — 형태소 분석기(Kiwi) 적용 후 재측정 (nb03)</li>
+      </ol>
+      <p class="ft">사내에 형태소 분석기 설치가 어려우면 조사 제거 방식으로도 상당 부분 회복됨</p>
+    </div>
+    <div class="pn"><h4>시맨틱 — 뜻으로 찾기</h4>
+      <p class="sub">문장을 숫자 벡터로 바꿔 가까운 것을 찾음</p>
+      <ol>
+        <li><b>강점</b> — 표현이 달라도 같은 뜻이면 회수</li>
+        <li><b>약점</b> — 고유명사 · 숫자를 흐릿하게 처리해 엉뚱한 문서를 올림</li>
+        <li><b>함정</b> — 청크가 임베딩 최대 길이를 넘으면 <b>뒤가 조용히 잘림</b></li>
+        <li><b>처방</b> — 토큰 p95 확인 후 청크 크기 조정 (nb00 · nb02)</li>
+      </ol>
+      <p class="ft">둘은 실패하는 지점이 다름 — 그래서 합쳐서(하이브리드) 쓰는 것</p>
+    </div>
+  </div>
+</section><section class="sec" id="s4">
+  <div class="step-no"><span class="num">4</span><span class="lbl">어디서 틀어지는가</span></div>
+  <h2>답이 안 나왔다 — 원인은 셋 중 하나</h2>
+  <p class="how">이 셋을 구분하지 않으면 <b>엉뚱한 곳을 고치게 된다</b>. 특히 ① 을 오답으로 집계하면 검색 성능이 실제보다 낮게 나온다.</p>
+  <p class="msg t2">"못 찾았다" 와 "없다" 는 완전히 다른 문제 — 섞어서 집계하지 않는다</p>
+
+  <div class="fig">
+    <p class="fig-t">도식 5 · 실패 3분류</p>
+    <div class="fig-s">
+    <svg viewBox="0 0 1120 300" xmlns="http://www.w3.org/2000/svg">
+      <defs><marker id="a5" markerWidth="9" markerHeight="9" refX="8" refY="3.2" orient="auto"><path d="M0,0 L8,3.2 L0,6.4 z" class="sa-n"/></marker></defs>
+      <rect x="0" y="110" width="170" height="60" rx="3" class="sd"/>
+      <text x="85" y="136" class="c-h">답이 부실함</text>
+      <text x="85" y="156" class="c-s">점수가 낮게 나옴</text>
+
+      <path d="M170,140 L210,140 L210,52 L246,52" class="sl-n" fill="none" marker-end="url(#a5)"/>
+      <path d="M170,140 L210,140 L246,140" class="sl-n" fill="none" marker-end="url(#a5)"/>
+      <path d="M170,140 L210,140 L210,228 L246,228" class="sl-n" fill="none" marker-end="url(#a5)"/>
+
+      <rect x="250" y="22" width="380" height="60" rx="3" class="sb-r"/>
+      <text x="264" y="46" class="k t-r">① 근거 문서가 코퍼스에 없음</text>
+      <text x="264" y="68" class="d">수집 범위 밖 · 미적재 · 파싱 실패로 본문이 비어 있음</text>
+      <rect x="250" y="110" width="380" height="60" rx="3" class="sw"/>
+      <text x="264" y="134" class="k t-w">② 문서는 있으나 검색되지 않음</text>
+      <text x="264" y="156" class="d">청킹 경계 · 토크나이저 · 결합 가중치 · 리랭크 문제</text>
+      <rect x="250" y="198" width="380" height="60" rx="3" class="sp2"/>
+      <text x="264" y="222" class="k t-k">③ 찾았으나 답변이 틀림</text>
+      <text x="264" y="244" class="d">컨텍스트 구성 · 프롬프트 · 환각 · 인용 누락</text>
+
+      <g class="sl" marker-end="url(#a5)"><line x1="630" y1="52" x2="676" y2="52"/><line x1="630" y1="140" x2="676" y2="140"/><line x1="630" y1="228" x2="676" y2="228"/></g>
+
+      <rect x="680" y="22" width="440" height="60" rx="3" class="sb"/>
+      <text x="694" y="46" class="k">대응 — 수집 과제</text>
+      <text x="694" y="68" class="d">원본 URL · 파일을 수집 목록에 등록 → 적재 · 파싱 · 청킹 후 재측정. <tspan class="t-r">검색 점수에서 제외</tspan></text>
+      <rect x="680" y="110" width="440" height="60" rx="3" class="sb"/>
+      <text x="694" y="134" class="k">대응 — 검색 개선</text>
+      <text x="694" y="156" class="d">nb03 토크나이저 · nb02 청킹 · nb13 프리셋 v1~v3 비교로 원인 좁히기</text>
+      <rect x="680" y="198" width="440" height="60" rx="3" class="sb"/>
+      <text x="694" y="222" class="k">대응 — 생성 개선</text>
+      <text x="694" y="244" class="d">컨텍스트 개수 · 문단 적합성 판정(grade) · 환각 점검(verify) · 프롬프트 제약</text>
+
+      <rect x="0" y="272" width="1120" height="26" rx="3" class="sw"/>
+      <text x="16" y="290" class="d t-w">nb11 근거 연결 단계가 ① 과 ② 를 갈라준다 — 질문별로 근거 문서가 코퍼스에 있는지 먼저 판정</text>
+    </svg>
+    </div>
+    <p class="fig-c"><b>왜 중요한가</b> — ① 을 오답으로 세면 "검색이 나쁘다"는 잘못된 결론이 나오고, 실제로는 수집을 늘려야 할 상황에서 검색 파라미터만 만지게 된다.</p>
+  </div>
+
+  <h3>4-1. 점수가 낮을 때 — 어디를 볼지 정하는 순서</h3>
+  <div class="fig">
+    <p class="fig-t">도식 6 · 원인 판별 흐름도</p>
+    <div class="fig-s">
+    <svg viewBox="0 0 1120 470" xmlns="http://www.w3.org/2000/svg">
+      <defs><marker id="a6" markerWidth="9" markerHeight="9" refX="8" refY="3.2" orient="auto"><path d="M0,0 L8,3.2 L0,6.4 z" class="sa-k"/></marker></defs>
+
+      <rect x="420" y="0" width="280" height="44" rx="3" class="sd"/>
+      <text x="560" y="28" class="c-h">평가 점수가 기준 미달</text>
+      <line x1="560" y1="44" x2="560" y2="66" class="sl-k" marker-end="url(#a6)"/>
+
+      <path d="M560,70 L760,110 L560,150 L360,110 z" class="sp2"/>
+      <text x="560" y="106" class="st">nb00 미달 항목이 있는가</text>
+      <text x="560" y="126" class="st-s">적재 · 메타 · 청킹 · 인덱싱</text>
+
+      <line x1="360" y1="110" x2="270" y2="110" class="sl-k" marker-end="url(#a6)"/>
+      <text x="312" y="100" class="st-m t-r">있음</text>
+      <rect x="20" y="82" width="246" height="56" rx="3" class="sb-r"/>
+      <text x="34" y="106" class="k t-r">여기서 멈춤</text>
+      <text x="34" y="126" class="d">데이터부터 고침 · 지금 점수는 해석 불가</text>
+
+      <line x1="560" y1="150" x2="560" y2="176" class="sl-k" marker-end="url(#a6)"/>
+      <text x="586" y="168" class="st-m t-o">없음</text>
+
+      <path d="M560,180 L760,220 L560,260 L360,220 z" class="sp2"/>
+      <text x="560" y="216" class="st">근거 문서가 코퍼스에 있는가</text>
+      <text x="560" y="236" class="st-s">nb11 근거 판정 결과</text>
+
+      <line x1="360" y1="220" x2="270" y2="220" class="sl-k" marker-end="url(#a6)"/>
+      <text x="312" y="210" class="st-m t-r">없음</text>
+      <rect x="20" y="192" width="246" height="56" rx="3" class="sb-r"/>
+      <text x="34" y="216" class="k t-r">수집 공백</text>
+      <text x="34" y="236" class="d">원본 수집 목록에 등록 · 검색 점수에서 제외</text>
+
+      <line x1="560" y1="260" x2="560" y2="286" class="sl-k" marker-end="url(#a6)"/>
+      <text x="586" y="278" class="st-m t-o">있음</text>
+
+      <path d="M560,290 L760,330 L560,370 L360,330 z" class="sp2"/>
+      <text x="560" y="326" class="st">Recall@5 가 기준(0.80) 이상인가</text>
+      <text x="560" y="346" class="st-s">정답 문서를 상위에 올렸는가</text>
+
+      <line x1="360" y1="330" x2="270" y2="330" class="sl-k" marker-end="url(#a6)"/>
+      <text x="312" y="320" class="st-m t-w">미달</text>
+      <rect x="20" y="288" width="246" height="84" rx="3" class="sw"/>
+      <text x="34" y="312" class="k t-w">검색 단계 문제</text>
+      <text x="34" y="332" class="d">① 토크나이저 (nb03)</text>
+      <text x="34" y="350" class="d">② 청킹 크기 · 경계 (nb02)</text>
+      <text x="34" y="368" class="d">③ 하이브리드 결합 (nb13 v1)</text>
+
+      <line x1="760" y1="330" x2="850" y2="330" class="sl-k" marker-end="url(#a6)"/>
+      <text x="805" y="320" class="st-m t-o">충족</text>
+      <rect x="854" y="288" width="266" height="84" rx="3" class="sg"/>
+      <text x="868" y="312" class="k t-o">생성 단계 문제</text>
+      <text x="868" y="332" class="d">찾기는 찾았는데 답이 틀림 —</text>
+      <text x="868" y="350" class="d">충실도 낮으면 프롬프트 · verify,</text>
+      <text x="868" y="368" class="d">정확도 낮으면 컨텍스트 수 · grade</text>
+
+      <rect x="0" y="400" width="1120" height="26" rx="3" class="sp2"/>
+      <text x="16" y="418" class="d t-k">MRR 만 낮고 Recall 은 정상이면 — 찾기는 찾되 순서가 나쁜 것. 리랭크(nb13 v2)를 먼저 본다</text>
+      <rect x="0" y="434" width="1120" height="26" rx="3" class="sw"/>
+      <text x="16" y="452" class="d t-w">거절 정확도만 낮으면 — 자료가 없을 때 지어내는 것. 점수 임계와 프롬프트의 "없으면 없다고" 규칙을 본다</text>
+    </svg>
+    </div>
+    <p class="fig-c">이 흐름도를 <b>위에서부터</b> 따라가면, 한 번에 한 원인만 다루게 되어 실험 회차가 꼬이지 않는다.</p>
+  </div>
+</section><section class="sec" id="s5">
+  <div class="step-no"><span class="num">5</span><span class="lbl">골든셋</span></div>
+  <h2>채점 기준표가 없으면 점수도 없다</h2>
+  <p class="how">골든셋은 <b>질문 + 정답 + 근거 문서</b> 세 가지가 갖춰진 평가용 데이터. 하나라도 빠지면 점수를 해석할 수 없다.</p>
+
+  <div class="fig">
+    <p class="fig-t">도식 7 · 골든셋 3종 — 어디서 오는가</p>
+    <div class="fig-s">
+    <svg viewBox="0 0 1120 330" xmlns="http://www.w3.org/2000/svg">
+      <defs><marker id="a7" markerWidth="9" markerHeight="9" refX="8" refY="3.2" orient="auto"><path d="M0,0 L8,3.2 L0,6.4 z" class="sa-k"/></marker>
+      <marker id="a7w" markerWidth="9" markerHeight="9" refX="8" refY="3.2" orient="auto"><path d="M0,0 L8,3.2 L0,6.4 z" class="sa-w"/></marker></defs>
+
+      <rect x="0" y="30" width="180" height="90" rx="3" class="sd"/>
+      <text x="90" y="62" class="c-h">사내 코퍼스</text>
+      <text x="90" y="82" class="c-s">적재 · 청킹 완료 문서</text>
+      <text x="90" y="104" class="c-m">RAG_CHUNK</text>
+
+      <path d="M180,60 L226,60" class="sl-k" marker-end="url(#a7)"/>
+      <path d="M180,90 L226,160" class="sl-k" marker-end="url(#a7)"/>
+
+      <rect x="230" y="26" width="290" height="70" rx="3" class="sg"/>
+      <text x="244" y="50" class="k t-o">A · LLM 생성 골든셋 — 권장</text>
+      <text x="244" y="72" class="d">문서를 LLM 이 읽고 질문 · 정답 · 근거를 함께 생성</text>
+      <text x="244" y="90" class="rs">정답이 코퍼스 안에 반드시 존재 → 해석이 명확</text>
+      <text x="506" y="46" class="st-m">nb12</text>
+
+      <rect x="230" y="126" width="290" height="70" rx="3" class="sb"/>
+      <text x="244" y="150" class="k">B · 자동 평가셋 — 라벨 0건</text>
+      <text x="244" y="172" class="d">원문 문장 · 제목을 질의로 사용 · 합성 QA</text>
+      <text x="244" y="190" class="rs">사람 작업 없음 · 검색 성능 전용</text>
+      <text x="506" y="146" class="st-m">nb08</text>
+
+      <rect x="0" y="216" width="180" height="90" rx="3" class="sw"/>
+      <text x="90" y="246" class="st t-w">사외 시장 지식</text>
+      <text x="90" y="266" class="st-s">제가 작성한 60문항</text>
+      <text x="90" y="288" class="st-m">answer_golden_v1</text>
+      <path d="M180,260 L226,260" class="sl-w" marker-end="url(#a7w)"/>
+      <rect x="230" y="226" width="290" height="70" rx="3" class="sw"/>
+      <text x="244" y="250" class="k t-w">C · 사외 정보 질문</text>
+      <text x="244" y="272" class="d t-w">질문만 있음 — 근거 연결 전에는 골든셋 아님</text>
+      <text x="244" y="290" class="rs">근거 연결 후에만 점수 집계</text>
+      <text x="506" y="246" class="st-m">nb11</text>
+
+      <g class="sl-k" marker-end="url(#a7)"><line x1="520" y1="60" x2="566" y2="130"/><line x1="520" y1="160" x2="566" y2="150"/></g>
+      <line x1="520" y1="260" x2="566" y2="180" class="sl-w" marker-end="url(#a7w)"/>
+
+      <rect x="570" y="120" width="240" height="80" rx="3" class="sp2"/>
+      <text x="690" y="148" class="st">사람 검수</text>
+      <text x="690" y="168" class="st-s">채택 / 수정 후 채택 / 폐기</text>
+      <text x="690" y="190" class="st-m">평가팩 1b · 1 · 2d 시트</text>
+
+      <line x1="810" y1="160" x2="856" y2="160" class="sl-k" marker-end="url(#a7)"/>
+      <rect x="860" y="110" width="260" height="100" rx="3" class="sg"/>
+      <text x="990" y="140" class="st t-o">확정 골든셋</text>
+      <text x="990" y="162" class="st-s">버전 고정 후 변경 금지</text>
+      <text x="990" y="182" class="st-s">이후 모든 측정에 같은 것 사용</text>
+      <text x="990" y="202" class="st-m">golden_llm_v1.csv</text>
+
+      <rect x="570" y="230" width="550" height="66" rx="3" class="sw"/>
+      <text x="586" y="254" class="k t-w">C 경로에서 "문서 없음"이 많이 나오는 것은 정상</text>
+      <text x="586" y="276" class="d t-w">그 자체가 소스 커버리지 진단 결과 — 수집 확대 목록으로 활용하고, 검색 점수에는 넣지 않음</text>
+    </svg>
+    </div>
+    <p class="fig-c"><b>왜 A 가 기본인가</b> — 정답이 우리 문서 안에 있다는 것이 보장되므로, 틀렸을 때 원인이 <b>검색 또는 생성</b>으로 좁혀진다.</p>
+  </div>
+
+  <h3>5-1. nb12 — 골든셋이 만들어지는 7단계</h3>
+  <div class="fig">
+    <p class="fig-t">도식 8 · 생성 · 자가검증 · 검수</p>
+    <div class="fig-s">
+    <svg viewBox="0 0 1120 280" xmlns="http://www.w3.org/2000/svg">
+      <defs><marker id="a8" markerWidth="9" markerHeight="9" refX="8" refY="3.2" orient="auto"><path d="M0,0 L8,3.2 L0,6.4 z" class="sa-k"/></marker>
+      <marker id="a8r" markerWidth="9" markerHeight="9" refX="8" refY="3.2" orient="auto"><path d="M0,0 L8,3.2 L0,6.4 z" class="sa-r"/></marker></defs>
+      <g class="sb"><rect x="0" y="20" width="140" height="66" rx="3"/><rect x="163" y="20" width="140" height="66" rx="3"/>
+        <rect x="326" y="20" width="140" height="66" rx="3"/><rect x="489" y="20" width="140" height="66" rx="3"/>
+        <rect x="652" y="20" width="140" height="66" rx="3"/><rect x="815" y="20" width="140" height="66" rx="3"/></g>
+      <rect x="978" y="20" width="142" height="66" rx="3" class="sg"/>
+      <g class="st"><text x="70" y="44">1 표본</text><text x="233" y="44">2 생성</text><text x="396" y="44">3 자가검증</text><text x="559" y="44">4 답없음</text>
+        <text x="722" y="44">5 배분 점검</text><text x="885" y="44">6 검수</text><text x="1049" y="44">7 확정</text></g>
+      <g class="st-s"><text x="70" y="64">유형별 균형</text><text x="70" y="80">수치 포함 우선</text>
+        <text x="233" y="64">질문 · 정답 · 근거</text><text x="233" y="80">JSON 한 줄</text>
+        <text x="396" y="64">6개 항목 검사</text><text x="396" y="80">통과 / 보류</text>
+        <text x="559" y="64">없는 전제 질문</text><text x="559" y="80">거절 측정용</text>
+        <text x="722" y="64">유형 비율 확인</text><text x="722" y="80">쏠림 방지</text>
+        <text x="885" y="64">사람이 판정</text><text x="885" y="80">10초 내외</text>
+        <text x="1049" y="64">CSV 저장</text><text x="1049" y="80">버전 고정</text></g>
+      <g class="sl-k" marker-end="url(#a8)"><line x1="140" y1="53" x2="159" y2="53"/><line x1="303" y1="53" x2="322" y2="53"/>
+        <line x1="466" y1="53" x2="485" y2="53"/><line x1="629" y1="53" x2="648" y2="53"/>
+        <line x1="792" y1="53" x2="811" y2="53"/><line x1="955" y1="53" x2="974" y2="53"/></g>
+
+      <text x="0" y="118" class="ch">3단계 자가검증 — 사람 손이 가기 전에 걸러내는 것</text>
+      <g class="sb"><rect x="0" y="130" width="176" height="58" rx="3"/><rect x="189" y="130" width="176" height="58" rx="3"/>
+        <rect x="378" y="130" width="176" height="58" rx="3"/><rect x="567" y="130" width="176" height="58" rx="3"/>
+        <rect x="756" y="130" width="176" height="58" rx="3"/><rect x="945" y="130" width="175" height="58" rx="3"/></g>
+      <g class="st"><text x="88" y="152">근거 실재</text><text x="277" y="152">복붙 아님</text><text x="466" y="152">지시어 없음</text>
+        <text x="655" y="152">길이 적정</text><text x="844" y="152">중복 아님</text><text x="1032" y="152">회수 가능</text></g>
+      <g class="st-s"><text x="88" y="174">근거 문장이 원문에 있나</text><text x="277" y="174">질문이 원문 복사 아닌가</text>
+        <text x="466" y="174">"이 문서" 같은 말 없나</text><text x="655" y="174">8~150자</text>
+        <text x="844" y="174">같은 질문 반복 아닌가</text><text x="1032" y="174">질문으로 그 문서가 검색되나</text></g>
+
+      <rect x="0" y="208" width="1120" height="30" rx="3" class="sw"/>
+      <text x="16" y="228" class="d t-w">하나라도 걸리면 "보류" — 검수 시 이 문항부터 확인. "회수 가능" 실패는 골든셋 문제가 아니라 <tspan class="k t-w">검색 문제일 수 있음</tspan>(기록해 둘 것)</text>
+      <rect x="0" y="246" width="1120" height="30" rx="3" class="sp2"/>
+      <text x="16" y="266" class="d t-k">검수 기준 3가지 — ① 질문만 보고 답할 수 있는가 ② 정답이 근거 문장에서 나오는가 ③ 정답이 하나로 특정되는가</text>
+    </svg>
+    </div>
+    <p class="fig-c">200문항 기준 검수 소요 <b>40분 내외</b>. 자가검증 통과분부터 보면 대부분 "채택"으로 빠르게 넘어간다.</p>
+  </div>
+
+  <div class="tw">
+    <table>
+      <thead><tr><th>구분</th><th>A · LLM 생성 (nb12)</th><th>B · 자동 평가셋 (nb08)</th><th>C · 사외 질문 (nb11)</th></tr></thead>
+      <tbody>
+        <tr><td class="hd">정답 위치</td><td>코퍼스 안 (보장)</td><td>코퍼스 안 (보장)</td><td>불확실 — 연결해야 앎</td></tr>
+        <tr><td class="hd">측정 대상</td><td>검색 + 답변</td><td>검색만</td><td>답변 + 커버리지</td></tr>
+        <tr><td class="hd">사람 작업</td><td>검수 (문항당 10초)</td><td>없음</td><td>근거 판정 (문항당 30초)</td></tr>
+        <tr><td class="hd">필요 조건</td><td>사내 LLM</td><td>없음</td><td>없음</td></tr>
+        <tr><td class="hd">권장 규모</td><td>30~50문항</td><td>200~500문항</td><td>60문항 (제공됨)</td></tr>
+        <tr class="sum"><td class="hd">쓰는 때</td><td>기본 · 가장 먼저</td><td>회귀 점검 · 상시</td><td>수집 범위 진단</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="note"><b>최소 규모</b> — 자동 200 + 사람 확정 30 이면 판단 가능. 200문항 기준 95% 신뢰구간 ±6.9%p 이므로,
+  개선 폭이 7%p 미만이면 "차이 없음"으로 보고 문항을 늘리거나 판단을 보류한다.</div>
+</section><section class="sec" id="s6">
+  <div class="step-no"><span class="num">6</span><span class="lbl">지표 읽기</span></div>
+  <h2>16개 지표 — 무엇이 어디를 재는가</h2>
+  <p class="how">지표를 외울 필요는 없다. <b>파이프라인의 어느 구간을 재는지</b>만 알면 낮은 점수에서 고칠 곳이 바로 나온다.</p>
+
+  <div class="fig">
+    <p class="fig-t">도식 9 · 지표가 붙는 자리</p>
+    <div class="fig-s">
+    <svg viewBox="0 0 1120 380" xmlns="http://www.w3.org/2000/svg">
+      <defs><marker id="a9" markerWidth="9" markerHeight="9" refX="8" refY="3.2" orient="auto"><path d="M0,0 L8,3.2 L0,6.4 z" class="sa-k"/></marker></defs>
+
+      <g class="sb"><rect x="0" y="120" width="150" height="56" rx="3"/><rect x="190" y="120" width="180" height="56" rx="3"/>
+        <rect x="410" y="120" width="180" height="56" rx="3"/><rect x="630" y="120" width="180" height="56" rx="3"/>
+        <rect x="850" y="120" width="180" height="56" rx="3"/></g>
+      <g class="st"><text x="75" y="144">적재</text><text x="280" y="144">검색</text><text x="500" y="144">순위 조정</text><text x="720" y="144">컨텍스트</text><text x="940" y="144">답변</text></g>
+      <g class="st-s"><text x="75" y="164">문서 · 청크 · 인덱스</text><text x="280" y="164">BM25 + 시맨틱</text>
+        <text x="500" y="164">리랭크 · MMR</text><text x="720" y="164">상위 k 투입</text><text x="940" y="164">LLM 생성</text></g>
+      <g class="sl-k" marker-end="url(#a9)"><line x1="150" y1="148" x2="186" y2="148"/><line x1="370" y1="148" x2="406" y2="148"/>
+        <line x1="590" y1="148" x2="626" y2="148"/><line x1="810" y1="148" x2="846" y2="148"/></g>
+
+      <g class="sp2"><rect x="0" y="30" width="150" height="72" rx="3"/><rect x="190" y="30" width="180" height="72" rx="3"/>
+        <rect x="410" y="30" width="180" height="72" rx="3"/><rect x="630" y="30" width="180" height="72" rx="3"/>
+        <rect x="850" y="30" width="180" height="72" rx="3"/></g>
+      <g class="st t-k"><text x="75" y="50">적재 점검</text><text x="280" y="50">Recall@k</text><text x="500" y="50">MRR · nDCG</text>
+        <text x="720" y="50">Context Precision</text><text x="940" y="50">Faithfulness</text></g>
+      <g class="st-s"><text x="75" y="70">미달 0 건</text><text x="280" y="70">R@5 ≥ 0.80</text><text x="500" y="70">MRR ≥ 0.65</text>
+        <text x="720" y="70">≥ 0.50</text><text x="940" y="70">≥ 0.85</text></g>
+      <g class="st-s"><text x="75" y="90">nb00</text><text x="280" y="90">Hit Rate · Precision@k</text><text x="500" y="90">MAP</text>
+        <text x="720" y="90">Context Recall ≥ 0.75</text><text x="940" y="90">Answer Correctness ≥ 0.75</text></g>
+      <g class="sl-kd"><line x1="75" y1="102" x2="75" y2="116"/><line x1="280" y1="102" x2="280" y2="116"/>
+        <line x1="500" y1="102" x2="500" y2="116"/><line x1="720" y1="102" x2="720" y2="116"/><line x1="940" y1="102" x2="940" y2="116"/></g>
+
+      <g class="sw"><rect x="630" y="196" width="180" height="56" rx="3"/><rect x="850" y="196" width="180" height="56" rx="3"/></g>
+      <text x="720" y="220" class="st t-w">Citation Accuracy</text><text x="720" y="240" class="st-s">≥ 0.90 · 인용이 실제 근거를 가리키나</text>
+      <text x="940" y="220" class="st t-w">Refusal Accuracy</text><text x="940" y="240" class="st-s">≥ 0.80 · 없으면 없다고 하나</text>
+      <g class="sl-kd"><line x1="720" y1="176" x2="720" y2="192"/><line x1="940" y1="176" x2="940" y2="192"/></g>
+
+      <rect x="0" y="196" width="590" height="56" rx="3" class="sb"/>
+      <text x="16" y="220" class="k">운영 지표 — 전 구간</text>
+      <text x="16" y="242" class="d">p95 지연 (검색 ≤ 2초 · 답변 ≤ 8초) · 평가 재현성 (같은 설정 2회 측정 편차 ≤ 0.02)</text>
+
+      <rect x="0" y="272" width="1120" height="30" rx="3" class="sp2"/>
+      <text x="16" y="292" class="d t-k">Recall 은 <tspan class="k t-k">찾았는가</tspan>, MRR 은 <tspan class="k t-k">몇 번째로 찾았는가</tspan>, Faithfulness 는 <tspan class="k t-k">근거대로 말했는가</tspan> — 셋의 질문이 다르다</text>
+      <rect x="0" y="310" width="1120" height="30" rx="3" class="sw"/>
+      <text x="16" y="330" class="d t-w">Hallucination Rate 와 Faithfulness 는 동전의 양면 — 둘 다 기록해 두면 원인 추적이 쉬움</text>
+      <rect x="0" y="348" width="1120" height="30" rx="3" class="sb"/>
+      <text x="16" y="368" class="d">계산 방식 3종 — auto(규칙 · 임베딩 자동) · judge(사내 LLM 채점) · manual(20문항 사람 확인). RAGAS 원 구현은 외부 LLM 을 쓰므로 정의만 같게 사내 자원으로 근사</text>
+    </svg>
+    </div>
+    <p class="fig-c"><b>전체 16종</b> — 검색 8 · 생성 6 · 운영 2. 상세 정의는 평가팩 <code>8_표준지표</code> 시트와 <code>lab_ragas.catalog()</code> 참조.</p>
+  </div>
+
+  <h3>6-1. 읽는 순서</h3>
+  <div class="steps">
+    <div class="sp key"><span class="n">1</span><b>적재 미달 0 건?</b><p>아니면 여기서 멈춤 · 아래 점수는 해석 불가</p></div>
+    <div class="sp"><span class="n">2</span><b>근거 확보율</b><p>낮으면 수집 공백 — 검색 탓이 아님</p></div>
+    <div class="sp"><span class="n">3</span><b>Recall@5</b><p>0.80 미만이면 검색 단계부터</p></div>
+    <div class="sp"><span class="n">4</span><b>MRR</b><p>Recall 정상인데 낮으면 리랭크</p></div>
+    <div class="sp"><span class="n">5</span><b>Faithfulness</b><p>검색 정상인데 낮으면 생성 문제</p></div>
+    <div class="sp"><span class="n">6</span><b>Refusal</b><p>없는 것을 지어내는지 마지막 확인</p></div>
+  </div>
+
+  <div class="tw">
+    <table>
+      <thead><tr><th>증상</th><th>지표 조합</th><th>해석</th><th>먼저 볼 곳</th></tr></thead>
+      <tbody>
+        <tr><td class="hd">전부 낮음</td><td class="mn">Recall ↓ · 충실도 ↓</td><td>적재 또는 골든셋 자체 문제</td><td>nb00 · 골든셋 검수 기록</td></tr>
+        <tr><td class="hd">찾기는 찾는데 순서가 나쁨</td><td class="mn">Recall 정상 · MRR ↓</td><td>순위 품질 문제</td><td>리랭크 (nb13 v2)</td></tr>
+        <tr><td class="hd">검색은 좋은데 답이 틀림</td><td class="mn">Recall ↑ · Correctness ↓</td><td>컨텍스트 구성 또는 프롬프트</td><td>컨텍스트 수 · grade 노드</td></tr>
+        <tr><td class="hd">지어냄</td><td class="mn">충실도 ↓ · 인용 ↓</td><td>근거 밖 생성</td><td>verify 노드 · 프롬프트 제약</td></tr>
+        <tr><td class="hd">없는데 답함</td><td class="mn">거절 정확도 ↓</td><td>점수 임계가 느슨함</td><td>임계값 · "없으면 없다" 규칙</td></tr>
+        <tr><td class="hd">같은 문서만 나옴</td><td class="mn">Context Precision ↓</td><td>다양성 부족</td><td>MMR · 문서당 상한 (nb13 v3)</td></tr>
+        <tr class="sum"><td class="hd">점수는 올랐는데 느려짐</td><td class="mn">지표 ↑ · p95 ↑</td><td>노드 추가 비용</td><td>후보 수 축소 후 재측정</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section><section class="sec" id="s7">
+  <div class="step-no"><span class="num">7</span><span class="lbl">고도화</span></div>
+  <h2>노드를 하나씩 켜며 점수 변화를 본다</h2>
+  <p class="how">검색 · 생성 과정을 노드로 나누면, <b>무엇을 켰을 때 얼마나 좋아지는지</b>를 따로 잴 수 있다. LangGraph 가 없으면 내장 실행기가 같은 순서로 돈다.</p>
+
+  <div class="fig">
+    <p class="fig-t">도식 10 · RAG 그래프 — 노드와 되돌림</p>
+    <div class="fig-s">
+    <svg viewBox="0 0 1120 330" xmlns="http://www.w3.org/2000/svg">
+      <defs><marker id="aA" markerWidth="9" markerHeight="9" refX="8" refY="3.2" orient="auto"><path d="M0,0 L8,3.2 L0,6.4 z" class="sa-k"/></marker>
+      <marker id="aAw" markerWidth="9" markerHeight="9" refX="8" refY="3.2" orient="auto"><path d="M0,0 L8,3.2 L0,6.4 z" class="sa-w"/></marker>
+      <marker id="aAr" markerWidth="9" markerHeight="9" refX="8" refY="3.2" orient="auto"><path d="M0,0 L8,3.2 L0,6.4 z" class="sa-r"/></marker></defs>
+
+      <g class="sb"><rect x="0" y="40" width="140" height="62" rx="3"/><rect x="163" y="40" width="140" height="62" rx="3"/>
+        <rect x="326" y="40" width="140" height="62" rx="3"/><rect x="489" y="40" width="140" height="62" rx="3"/>
+        <rect x="652" y="40" width="140" height="62" rx="3"/><rect x="815" y="40" width="140" height="62" rx="3"/>
+        <rect x="978" y="40" width="142" height="62" rx="3"/></g>
+      <g class="st"><text x="70" y="64">route</text><text x="233" y="64">decompose</text><text x="396" y="64">retrieve</text><text x="559" y="64">grade</text>
+        <text x="722" y="64">generate</text><text x="885" y="64">verify</text><text x="1049" y="64">답변</text></g>
+      <g class="st-s"><text x="70" y="84">정형 · 비정형 판정</text><text x="233" y="84">복합 질의 분해</text><text x="396" y="84">하이브리드 + 결합</text>
+        <text x="559" y="84">무관 문단 제거</text><text x="722" y="84">근거 안에서 생성</text><text x="885" y="84">환각 점검</text><text x="1049" y="84">인용 · 시점 포함</text></g>
+      <g class="sl-k" marker-end="url(#aA)"><line x1="140" y1="71" x2="159" y2="71"/><line x1="303" y1="71" x2="322" y2="71"/>
+        <line x1="466" y1="71" x2="485" y2="71"/><line x1="629" y1="71" x2="648" y2="71"/>
+        <line x1="792" y1="71" x2="811" y2="71"/><line x1="955" y1="71" x2="974" y2="71"/></g>
+
+      <path d="M559,102 L559,136 L396,136 L396,106" class="sl-w" fill="none" marker-end="url(#aAw)"/>
+      <text x="478" y="152" class="st-m t-w">근거 부족 → 질의 재작성 후 재검색 (최대 1회)</text>
+      <path d="M885,102 L885,186 L722,186 L722,106" class="sl-w" fill="none" marker-end="url(#aAw)"/>
+      <text x="804" y="202" class="st-m t-w">충실도 0.6 미만 → 재생성 1회</text>
+      <path d="M885,102 L1050,102 L1050,222" class="sl-r" fill="none" marker-end="url(#aAr)"/>
+      <rect x="930" y="228" width="190" height="44" rx="3" class="sb-r"/>
+      <text x="1025" y="252" class="st t-r">확인된 자료 없음</text>
+      <text x="1025" y="268" class="st-s">재생성 후에도 미달이면 보류</text>
+
+      <rect x="0" y="228" width="900" height="44" rx="3" class="sp2"/>
+      <text x="16" y="248" class="k t-k">앞쪽 = 무엇을 찾을지 · 가운데 = 무엇을 넣을지 · 뒤쪽 = 무엇을 말할지</text>
+      <text x="16" y="266" class="d">노드를 켤수록 정확도는 오르지만 응답 시간도 늘어남 — 평균 초와 함께 보고 채택 결정</text>
+      <rect x="0" y="286" width="1120" height="34" rx="3" class="sw"/>
+      <text x="16" y="308" class="d t-w">langgraph 미설치 환경에서도 동일한 노드 함수를 내장 실행기가 순차 실행 — 결과 동일 · 폐쇄망 추가 설치 불필요</text>
+    </svg>
+    </div>
+    <p class="fig-c">노드별 실행 흔적은 <code>nb13</code> 의 <code>trace</code> 표에 남는다 — 어느 노드가 무엇을 했는지 한 줄씩 확인 가능.</p>
+  </div>
+
+  <h3>7-1. 프리셋 — 하나씩 켜며 올라가는 계단</h3>
+  <div class="fig">
+    <p class="fig-t">도식 11 · v0 에서 v6 까지</p>
+    <div class="fig-s">
+    <svg viewBox="0 0 1120 300" xmlns="http://www.w3.org/2000/svg">
+      <defs><marker id="aB" markerWidth="9" markerHeight="9" refX="8" refY="3.2" orient="auto"><path d="M0,0 L8,3.2 L0,6.4 z" class="sa-k"/></marker></defs>
+      <line x1="60" y1="240" x2="1100" y2="240" class="sl"/>
+      <line x1="60" y1="240" x2="60" y2="20" class="sl"/>
+      <text x="40" y="30" class="chs">점수</text>
+      <text x="1100" y="262" class="chs">노드 추가 →</text>
+
+      <rect x="80" y="196" width="130" height="44" class="sb"/>
+      <rect x="226" y="172" width="130" height="68" class="sb"/>
+      <rect x="372" y="148" width="130" height="92" class="sb"/>
+      <rect x="518" y="136" width="130" height="104" class="sb"/>
+      <rect x="664" y="124" width="130" height="116" class="sb"/>
+      <rect x="810" y="112" width="130" height="128" class="sp2"/>
+      <rect x="956" y="100" width="130" height="140" class="sg"/>
+
+      <g class="st"><text x="145" y="218">v0</text><text x="291" y="200">v1</text><text x="437" y="176">v2</text><text x="583" y="164">v3</text>
+        <text x="729" y="152">v4</text><text x="875" y="140">v5</text><text x="1021" y="128">v6</text></g>
+      <g class="st-s"><text x="145" y="236">BM25 단독</text><text x="291" y="220">+ 시맨틱</text><text x="437" y="196">+ 리랭크</text><text x="583" y="184">+ MMR</text>
+        <text x="729" y="172">+ 질의분해</text><text x="875" y="160">+ 적합성판정</text><text x="1021" y="148">+ 환각점검</text></g>
+      <g class="st-m"><text x="145" y="272">기준선</text><text x="291" y="272">Recall ↑</text><text x="437" y="272">MRR ↑</text><text x="583" y="272">중복 ↓</text>
+        <text x="729" y="272">복합질문 ↑</text><text x="875" y="272">정확도 ↑</text><text x="1021" y="272">충실도 ↑</text></g>
+
+      <path d="M145,190 L291,166 L437,142 L583,130 L729,118 L875,106 L1021,94" class="sl-kd" fill="none"/>
+      <rect x="620" y="16" width="480" height="74" rx="3" class="sw"/>
+      <text x="636" y="38" class="k t-w">계단이 늘 이렇게 오르지는 않음</text>
+      <text x="636" y="58" class="d t-w">데이터 · 질문 유형에 따라 특정 노드에서</text>
+      <text x="636" y="78" class="d t-w"><tspan class="k t-w">평평하거나 내려갈 수 있음</tspan> — 그 지점이 우리 데이터의 특성</text>
+    </svg>
+    </div>
+    <p class="fig-c"><b>이 그림의 용도</b> — 결과 형태를 미리 알려주는 것이지 예상 점수가 아님. 실제 값은 측정해야 나옴.</p>
+  </div>
+
+  <h3>7-2. 실험 1회차 — 이 고리를 반복</h3>
+  <div class="fig">
+    <p class="fig-t">도식 12 · 변경 → 측정 → 판정</p>
+    <div class="fig-s">
+    <svg viewBox="0 0 1120 240" xmlns="http://www.w3.org/2000/svg">
+      <defs><marker id="aC" markerWidth="9" markerHeight="9" refX="8" refY="3.2" orient="auto"><path d="M0,0 L8,3.2 L0,6.4 z" class="sa-k"/></marker>
+      <marker id="aCr" markerWidth="9" markerHeight="9" refX="8" refY="3.2" orient="auto"><path d="M0,0 L8,3.2 L0,6.4 z" class="sa-r"/></marker></defs>
+      <g class="sb"><rect x="0" y="30" width="190" height="62" rx="3"/><rect x="232" y="30" width="190" height="62" rx="3"/>
+        <rect x="464" y="30" width="190" height="62" rx="3"/><rect x="696" y="30" width="190" height="62" rx="3"/></g>
+      <rect x="928" y="30" width="192" height="62" rx="3" class="sp2"/>
+      <g class="st"><text x="95" y="56">설정 1개 변경</text><text x="327" y="56">같은 골든셋 실행</text><text x="559" y="56">지표 확인</text>
+        <text x="791" y="56">이력에 1행 추가</text><text x="1024" y="56">판정</text></g>
+      <g class="st-s"><text x="95" y="76">예: 리랭크 켜기</text><text x="327" y="76">버전 고정 · temperature 0</text>
+        <text x="559" y="76">콘솔 · Variable Explorer</text><text x="791" y="76">회차 · 변경 내용 · 값</text><text x="1024" y="76">개선 / 차이 없음 / 퇴행</text></g>
+      <g class="sl-k" marker-end="url(#aC)"><line x1="190" y1="61" x2="228" y2="61"/><line x1="422" y1="61" x2="460" y2="61"/>
+        <line x1="654" y1="61" x2="692" y2="61"/><line x1="886" y1="61" x2="924" y2="61"/></g>
+
+      <path d="M1024,92 L1024,124 L95,124 L95,96" class="sl-kd" fill="none" marker-end="url(#aC)"/>
+      <text x="560" y="140" class="st-m">개선이면 유지하고 다음 항목 · 퇴행이면 되돌림</text>
+
+      <rect x="0" y="156" width="550" height="34" rx="3" class="sg"/>
+      <text x="16" y="178" class="d t-o"><tspan class="k t-o">개선 판정</tspan> — 차이의 절대값이 오차 범위(±%p)보다 클 때만</text>
+      <rect x="570" y="156" width="550" height="34" rx="3" class="sw"/>
+      <text x="586" y="178" class="d t-w"><tspan class="k t-w">판단 보류</tspan> — 오차 이내면 개선이라 부르지 않음. 문항을 늘려 재측정</text>
+      <rect x="0" y="200" width="1120" height="34" rx="3" class="sb-r"/>
+      <text x="16" y="222" class="d t-r">두 설정을 동시에 바꾸면 어느 쪽 효과인지 영영 알 수 없음 — 회차당 변경은 반드시 1개</text>
+    </svg>
+    </div>
+    <p class="fig-c">이 기록이 쌓인 <code>5_실험이력</code> 시트가 <b>"무엇을 해서 얼마나 좋아졌다"</b>의 근거가 된다.</p>
+  </div>
+</section><section class="sec" id="s8">
+  <div class="step-no"><span class="num">8</span><span class="lbl">실행 순서</span></div>
+  <h2>3주 일정 — 무엇을 언제, 어느 파일에 적는가</h2>
+  <p class="how">앞 단계가 미달이면 뒤 단계 점수는 해석할 수 없다. <b>순서를 건너뛰지 않는 것</b>이 이 일정의 전부다.</p>
+
+  <div class="fig">
+    <p class="fig-t">도식 13 · 일정과 산출물</p>
+    <div class="fig-s">
+    <svg viewBox="0 0 1120 350" xmlns="http://www.w3.org/2000/svg">
+      <defs><marker id="aD" markerWidth="9" markerHeight="9" refX="8" refY="3.2" orient="auto"><path d="M0,0 L8,3.2 L0,6.4 z" class="sa-k"/></marker></defs>
+      <text x="0" y="14" class="ch">준비</text><text x="250" y="14" class="ch">1주차</text>
+      <text x="520" y="14" class="ch">2주차</text><text x="800" y="14" class="ch">3주차 이후</text>
+      <line x1="0" y1="24" x2="1120" y2="24" class="sl"/>
+      <g class="sl-kd"><line x1="240" y1="24" x2="240" y2="330"/><line x1="510" y1="24" x2="510" y2="330"/><line x1="790" y1="24" x2="790" y2="330"/></g>
+
+      <rect x="0" y="38" width="226" height="56" rx="3" class="sb"/>
+      <text x="14" y="60" class="k">연결 설정</text>
+      <text x="14" y="80" class="d">.env · lab_config [사내 맞춤]</text>
+      <rect x="250" y="38" width="240" height="56" rx="3" class="sp2"/>
+      <text x="264" y="60" class="k t-k">nb00 적재 검증</text>
+      <text x="264" y="80" class="d">미달 항목 목록 → 조치</text>
+      <rect x="520" y="38" width="250" height="56" rx="3" class="sb"/>
+      <text x="534" y="60" class="k">nb12 골든셋 생성 · 검수</text>
+      <text x="534" y="80" class="d">확정 → golden_llm_v1.csv</text>
+      <rect x="800" y="38" width="320" height="56" rx="3" class="sb"/>
+      <text x="814" y="60" class="k">nb13 프리셋 비교</text>
+      <text x="814" y="80" class="d">운영 프리셋 확정 → DEFAULT 반영</text>
+
+      <rect x="0" y="106" width="226" height="56" rx="3" class="sb"/>
+      <text x="14" y="128" class="k">샘플 모드 예행</text>
+      <text x="14" y="148" class="d">노트북 훑기 · 구조 익히기</text>
+      <rect x="250" y="106" width="240" height="56" rx="3" class="sb"/>
+      <text x="264" y="128" class="k">nb01 · nb02 현황</text>
+      <text x="264" y="148" class="d">소스별 분포 · 정제 품질</text>
+      <rect x="520" y="106" width="250" height="56" rx="3" class="sp2"/>
+      <text x="534" y="128" class="k t-k">nb06 · nb10 기준선</text>
+      <text x="534" y="148" class="d">첫 측정값 = 이후 비교 기준</text>
+      <rect x="800" y="106" width="320" height="56" rx="3" class="sb"/>
+      <text x="814" y="128" class="k">nb07 정형 연계 · nb05 스모크</text>
+      <text x="814" y="148" class="d">지표 정의서 채운 뒤 진행</text>
+
+      <rect x="250" y="174" width="240" height="56" rx="3" class="sb"/>
+      <text x="264" y="196" class="k">nb11 근거 연결</text>
+      <text x="264" y="216" class="d">사외 60문항 · 수집 공백 목록</text>
+      <rect x="520" y="174" width="250" height="56" rx="3" class="sb"/>
+      <text x="534" y="196" class="k">nb03 토크나이저</text>
+      <text x="534" y="216" class="d">Kiwi 적용 여부 결정</text>
+      <rect x="800" y="174" width="320" height="56" rx="3" class="sw"/>
+      <text x="814" y="196" class="k t-w">정기 회귀 점검</text>
+      <text x="814" y="216" class="d t-w">nb08 자동 평가셋으로 월 1회 · 퇴행 감시</text>
+
+      <text x="0" y="256" class="ch">기록 위치</text>
+      <line x1="0" y1="264" x2="1120" y2="264" class="sl"/>
+      <g class="d"><text x="0" y="286">준비 — 없음</text>
+        <text x="250" y="286">이력대장 3_파이프라인점검</text>
+        <text x="520" y="286">평가팩 1b · 3_평가_실행기록</text>
+        <text x="800" y="286">이력대장 5_실험이력 · 6_프리셋비교</text></g>
+      <g class="rs"><text x="250" y="306">미달 항목 · 조치 · 담당 · 기한</text>
+        <text x="520" y="306">검수 결과 · 지표 첫 값</text>
+        <text x="800" y="306">회차별 변경 내용과 증감</text></g>
+
+      <rect x="0" y="318" width="1120" height="28" rx="3" class="sp2"/>
+      <text x="16" y="337" class="d t-k">1주차에서 미달이 많이 나오면 2주차를 미룬다 — 데이터가 정리되지 않은 상태의 점수는 기준선이 될 수 없음</text>
+    </svg>
+    </div>
+    <p class="fig-c">일정은 <b>데이터 상태에 따라 늘어난다</b>. 1주차 미달 항목 수가 실제 소요를 결정한다.</p>
+  </div>
+
+  <h3>8-1. 준비물</h3>
+  <div class="tw">
+    <table>
+      <thead><tr><th>구분</th><th>항목</th><th>확인 사항</th><th>없으면</th></tr></thead>
+      <tbody>
+        <tr><td class="grp">접속</td><td class="hd">Oracle 읽기 전용 계정</td><td>SELECT 권한만 · 통합 문서 · 청크 테이블</td><td>전 과정 불가</td></tr>
+        <tr><td class="grp">접속</td><td class="hd">Milvus 주소 · 컬렉션명</td><td>스칼라 필터 필드 존재 여부</td><td>nb04 · 인덱싱 점검만 생략</td></tr>
+        <tr><td class="grp">모델</td><td class="hd">사내 LLM 엔드포인트</td><td>OpenAI 호환 <code>/v1/chat/completions</code></td><td>nb12 골든셋 생성 · nb10 답변 평가 불가</td></tr>
+        <tr><td class="grp">모델</td><td class="hd">임베딩 · 리랭커</td><td>로컬 모델 경로 또는 API</td><td>시맨틱 검색 점검 제한</td></tr>
+        <tr><td class="grp">정보</td><td class="hd">테이블 · 컬럼명 목록</td><td>lab_config [사내 맞춤] 에 기입</td><td>live 모드 동작 불가</td></tr>
+        <tr class="sum"><td class="grp">환경</td><td class="hd">Python · Spyder</td><td>pandas · numpy · openpyxl (필수 3종)</td><td>폐쇄망은 사내 미러 또는 wheel 반입</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>8-2. 파일 지도</h3>
+  <div class="tw">
+    <table>
+      <thead><tr><th>위치</th><th>무엇</th><th>쓰는 때</th></tr></thead>
+      <tbody>
+        <tr><td class="mn">rag_lab/lab_*.py</td><td>공통 모듈 11개 — 설정 · 입출력 · 검색 · 점검 · 지표 · 골든셋 · 그래프 · SQL</td><td>직접 열 일 거의 없음 (lab_config 제외)</td></tr>
+        <tr><td class="mn">rag_lab/nb00~nb13.py</td><td>실행 노트북 14개</td><td>Spyder 에서 셀 단위 실행</td></tr>
+        <tr><td class="mn">docs/rag_runbook_t2_rev1.html</td><td>본 문서 — 도식 중심 안내서</td><td>개념 확인 · 남에게 설명할 때</td></tr>
+        <tr><td class="mn">docs/rag_project_log_rev1.xlsx</td><td>이력 대장 10시트</td><td><b>매번 여는 파일</b> — 점검 · 실험 · 지표 기록</td></tr>
+        <tr><td class="mn">docs/golden_eval_pack_rev4.xlsx</td><td>골든셋 · 평가 기입본 14시트</td><td>골든셋 검수 · 문항 단위 채점</td></tr>
+        <tr><td class="mn">docs/rag_checklist_rev10.xlsx</td><td>설계 체크리스트 15시트</td><td>단계별 실행 도구 · 소스별 컬럼 매핑</td></tr>
+        <tr><td class="mn">golden/ · catalog/ · out/</td><td>평가 데이터 · 지표 정의서 · 실행 결과</td><td>out/ 결과를 엑셀에 붙여넣기</td></tr>
+        <tr class="sum"><td class="mn">USAGE.md</td><td>상세 사용법 · Windows FAQ</td><td>막혔을 때</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="alert"><b>반입 전 연습</b> — 개인 노트북에서 <code>LAB_MODE=sample</code> + <code>SAMPLE_MODELS=true</code> 로 두면
+  샘플 문서 16건을 쓰되 임베딩 · LLM 은 실제 호출되어 전 과정이 제대로 돈다. 샘플 문서는 지어낸 예시이므로 외부 API 사용 가능.
+  <b>사내 PC 에서는 이 설정을 쓰지 않는다</b> (사내 데이터 외부 전송 금지).</div>
+</section><section class="sec" id="s9">
+  <div class="step-no"><span class="num">+</span><span class="lbl">용어 풀이</span></div>
+  <h2>이 문서에 나온 말 12개</h2>
+  <p class="how">회의에서 그대로 쓸 수 있는 수준으로만 정리.</p>
+  <div class="gloss">
+    <div class="gl-c t1"><h4>청크 <span>chunk</span></h4><p>문서를 검색 단위로 자른 조각. 문서 1건이 여러 청크가 되고, DOC_ID 로 원문에 연결된다. 검색은 청크 단위로 이뤄진다.</p></div>
+    <div class="gl-c t1"><h4>임베딩 <span>embedding</span></h4><p>문장을 숫자 벡터로 바꾸는 것. 뜻이 비슷하면 벡터도 가까워지므로, 표현이 달라도 찾을 수 있다.</p></div>
+    <div class="gl-c t1"><h4>하이브리드 검색</h4><p>단어 일치(BM25)와 뜻 유사도(시맨틱)를 함께 쓰는 방식. 둘은 실패하는 지점이 달라서 합치면 서로를 보완한다.</p></div>
+    <div class="gl-c t1"><h4>RRF <span>결합</span></h4><p>서로 다른 검색기의 <b>순위</b>를 하나로 합치는 규칙. 점수 단위가 달라도 순위만 쓰므로 안전하다. 위치는 ④ 결합 단계.</p></div>
+    <div class="gl-c t2"><h4>리랭크 <span>rerank</span></h4><p>1차로 넓게 가져온 후보를 질문 · 문단 쌍으로 다시 채점해 순서를 바로잡는 것. Recall 보다 MRR · nDCG 를 올린다.</p></div>
+    <div class="gl-c t2"><h4>MMR <span>다양성</span></h4><p>비슷한 내용이 상위를 독점하지 않도록 중복을 접는 것. 리랭크 <b>다음</b> 단계이며 RRF 와는 자리가 다르다.</p></div>
+    <div class="gl-c t2"><h4>골든셋</h4><p>질문 + 정답 + 근거 문서가 갖춰진 채점 기준표. 이것이 없으면 점수를 낼 수 없고, 근거가 없으면 점수를 해석할 수 없다.</p></div>
+    <div class="gl-c t2"><h4>Recall@k</h4><p>정답 문서가 상위 k개 안에 들어온 질문의 비율. "찾았는가"를 재는 가장 기본 지표. 기준 R@5 ≥ 0.80.</p></div>
+    <div class="gl-c t3"><h4>MRR</h4><p>첫 정답이 몇 번째로 나왔는지의 역수 평균. 1위면 1.0. "몇 번째로 찾았는가"를 잰다.</p></div>
+    <div class="gl-c t3"><h4>충실도 <span>Faithfulness</span></h4><p>답변 문장 중 근거 자료에 실제로 있는 내용의 비율. 낮으면 지어낸 것. 기준 ≥ 0.85.</p></div>
+    <div class="gl-c t3"><h4>거절 정확도 <span>Refusal</span></h4><p>자료에 없는 질문에 "확인된 자료 없음"이라고 답한 비율. 모르는 것을 모른다고 하는 능력.</p></div>
+    <div class="gl-c t3"><h4>프리셋 <span>preset</span></h4><p>노드 구성 묶음(v0~v6). 하나씩 켜가며 같은 골든셋으로 재면 무엇이 얼마나 기여하는지 분리된다.</p></div>
+  </div>
+
+  <div class="note"><b>이 문서와 원본</b> — 내용은 <code>rag_runbook_rev1.html</code> 과 같고 형식만 T2 보고서 양식으로 바꾼 것.
+  실행 화면 · FAQ 상세는 원본과 <code>USAGE.md</code> 를 본다.</div>
+</section>
+<footer>
+RAG 구축 · 평가 실행 안내서 (T2) rev.1 · 2026-09-24 · 반도체 MIS DT<br>
+코드 rag_lab/ · 문서 rag_lab/docs/ · 이력 rag_project_log_rev1.xlsx · 원본 rag_runbook_rev1.html
+</footer>
+</div></body></html>
