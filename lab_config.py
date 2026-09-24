@@ -67,8 +67,15 @@ LLM_API_KEY = env('LLM_API_KEY', 'none')
 SEARCH_API_URL = env('SEARCH_API_URL', '')
 SEARCH_API_TOKEN = env('SEARCH_API_TOKEN', '')
 
-if IS_SAMPLE:                                            # 샘플 모드는 모델 없이 — .env 의 local/api 설정 무시
+# 샘플 데이터로 연습하되 모델은 진짜로 쓰고 싶을 때 (개인 노트북 학습용) → SAMPLE_MODELS=true
+#   DB · Milvus 없이 샘플 문서 16건을 쓰면서 임베딩 · 리랭커 · LLM 은 실제 호출한다.
+#   사내 데이터는 들어가지 않으므로 외부 API(OpenAI 등)를 써도 무방하다. 사내에서는 쓰지 않는다.
+SAMPLE_MODELS = env('SAMPLE_MODELS', 'false').lower() == 'true'
+if IS_SAMPLE and not SAMPLE_MODELS:                      # 샘플 모드 기본값은 모델 없이
     EMBED_MODE, RERANK_MODE = 'sample', 'sample'
+
+# LLM 을 실제로 호출할 수 있는 상태인가 (live 이거나, 샘플 + SAMPLE_MODELS)
+USE_LLM = bool(LLM_URL) and (not IS_SAMPLE or SAMPLE_MODELS)
 
 HTTP_TIMEOUT = int(env('HTTP_TIMEOUT', '60'))
 VERIFY_SSL = env('VERIFY_SSL', 'false').lower() == 'true'
@@ -137,9 +144,9 @@ def summary():
     """현재 설정을 한눈에 (비밀값은 가림)."""
     mask = lambda v: ('설정됨' if v else '비어 있음')
     return {
-        'LAB_MODE': LAB_MODE, 'ORA_DSN': ORA_DSN or '비어 있음', 'ORA_USER': mask(ORA_USER),
+        'LAB_MODE': LAB_MODE + (' + 실제 모델' if (IS_SAMPLE and SAMPLE_MODELS) else ''), 'ORA_DSN': ORA_DSN or '비어 있음', 'ORA_USER': mask(ORA_USER),
         'MILVUS_URI': MILVUS_URI, 'MILVUS_COLLECTION': MILVUS_COLLECTION,
         'EMBED_MODE': EMBED_MODE, 'EMBED_MAX_LENGTH': EMBED_MAX_LENGTH, 'RERANK_MODE': RERANK_MODE,
-        'LLM_URL': mask(LLM_URL), 'SEARCH_API_URL': mask(SEARCH_API_URL),
+        'LLM_URL': mask(LLM_URL), 'USE_LLM': USE_LLM, 'SEARCH_API_URL': mask(SEARCH_API_URL),
         'RAW_TABLE': RAW['table'], 'CHUNK_TABLE': CHUNK['table'], 'OUT_DIR': OUT_DIR,
     }

@@ -28,7 +28,7 @@ docs = lab_io.load_raw(n=None if C.IS_SAMPLE else 2000)
 chunks = lab_io.load_chunks(n=None if C.IS_SAMPLE else 50000).dropna(subset=['text']).reset_index(drop=True)
 sets = {'known-item': lab_autoeval.make_known_item(chunks, n=N_KNOWN),
         '제목': lab_autoeval.make_title_query(docs, n=N_TITLE)}
-if not C.IS_SAMPLE and C.LLM_URL:
+if C.USE_LLM:
     sets['합성'] = lab_autoeval.make_synthetic(chunks, n=N_SYN)
 print({k: len(v) for k, v in sets.items()})
 

@@ -45,7 +45,7 @@ print(eval_dup.head(3).to_string(index=False) if len(eval_dup) else '(중복쌍 
 
 # %% [4] L2 합성 QA — 사내 LLM 이 질문 생성 (live 에서 LLM_URL 필요)
 N_SYN = 50
-if C.IS_SAMPLE or not C.LLM_URL:
+if not C.USE_LLM:
     _mock = lambda p: '이 문서에서 제시한 핵심 수치는?'
     eval_syn = lab_autoeval.make_synthetic(chunks, n=min(N_SYN, 20), llm=_mock)
     print('(샘플 모드: 고정 문구로 대체 — live 에서 사내 LLM 사용)')

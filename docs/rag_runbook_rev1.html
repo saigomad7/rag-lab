@@ -130,7 +130,21 @@ ul.k{margin:6px 0 10px;padding-left:18px}ul.k li{margin:3px 0}
 <tr><td class="c">6</td><td>모드 전환</td><td>샘플 확인 끝나면 <code>.env</code> 의 <code>LAB_MODE=live</code></td><td><code>nb00</code> [0] 셀 출력으로 설정 확인</td></tr>
 </table></div>
 
-<h3>2-2. 실행 방식</h3>
+<h3>2-3. 사내 반입 전 — 개인 노트북에서 연습</h3>
+<p class="lead">사내 DB 없이 <b>샘플 문서 16건</b>으로 전 과정을 돌려 개념을 잡는 단계. 두 가지 방법이 있음.</p>
+<div class="scroll"><table class="w">
+<tr><th style="width:150px">방법</th><th style="width:210px">설정</th><th>무엇이 되는가</th></tr>
+<tr><td><b>A. 구조 파악</b><br><small>설치만 하면 됨</small></td><td class="mono">LAB_MODE=sample</td>
+<td>검색 · 지표 · 표 구조를 전부 확인. 단 <b>답변 · 골든셋 생성은 가짜(stub)</b> — 생성 지표 숫자는 의미 없음</td></tr>
+<tr><td><b>B. 실제 동작</b><br><small>권장</small></td><td class="mono">LAB_MODE=sample<br>SAMPLE_MODELS=true<br>EMBED_MODE=api · LLM_URL=…</td>
+<td>샘플 문서를 쓰되 <b>임베딩 · LLM 은 실제 호출</b>. nb12 골든셋 생성 · nb10 답변 평가 · nb13 프리셋 비교가 진짜로 돌아감</td></tr>
+</table></div>
+<div class="warn"><b>B 방법 주의</b> · 샘플 문서는 지어낸 예시라 외부 API(OpenAI 등)를 써도 무방함.
+<b>사내 PC 에서는 이 블록을 쓰지 않음</b> — 사내 데이터가 외부로 나가면 안 됨. <code>.env.example</code> 하단 주석 블록 참고.</div>
+<div class="note"><b>연습 순서 권장</b> — ① nb01 · nb02 (데이터가 어떻게 생겼나) → ② nb03 · nb06 (검색 방식별 점수 차이)
+→ ③ nb12 (골든셋이 어떻게 만들어지나) → ④ nb10 (답변 채점) → ⑤ nb13 (노드를 켜면 점수가 어떻게 변하나) → ⑥ nb00 (사내 가서 제일 먼저 할 것).</div>
+
+<h3>2-4. 실행 방식</h3>
 <ul class="k">
 <li>노트북 파일은 <code># %%</code> 로 셀이 나뉨 — Spyder 에서 <b>Ctrl+Enter</b> 로 셀 단위 실행</li>
 <li>각 셀은 콘솔에 진행 내용을 출력하고, 결과를 DataFrame 변수로 남김 → <b>Variable Explorer</b> 에서 표로 확인</li>

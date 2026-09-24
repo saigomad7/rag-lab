@@ -408,7 +408,7 @@ def build_context(results, meta=None, n=6):
 
 def llm_answer(question, results, meta=None, n=6, temperature=0.0):
     ctx = build_context(results, meta, n)
-    if C.IS_SAMPLE or not C.LLM_URL:
+    if not C.LLM_URL or (C.IS_SAMPLE and not C.SAMPLE_MODELS):
         return f'(샘플 모드: LLM 미호출) 상위 청크 → {results.iloc[0]["text"][:60] if len(results) else "없음"} …'
     import requests
     r = requests.post(C.LLM_URL, headers={'Authorization': f'Bearer {C.LLM_API_KEY}'}, timeout=C.HTTP_TIMEOUT, verify=C.VERIFY_SSL,

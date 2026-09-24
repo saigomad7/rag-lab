@@ -59,7 +59,7 @@ num = ['faithfulness', 'answer_relevancy', 'answer_correctness', 'citation_accur
 print(auto[['qid', 'q_type'] + num].round(3).to_string(index=False))
 
 # %% [5] LLM 채점(judge) — live + LLM_URL 일 때만
-if C.LLM_URL and not C.IS_SAMPLE:
+if C.USE_LLM:
     jr = []
     for r in rows:
         p = lab_ragas.judge_prompt(r['question'], r['answer'], r['contexts'], r['must_include'])

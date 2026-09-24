@@ -107,7 +107,7 @@ def _rule_item(row):
 
 def generate(sampled, n=60, llm=None, use_llm=None):
     """청크 표본 → 질의 · 응답 · 근거 생성"""
-    use_llm = (bool(C.LLM_URL) and not C.IS_SAMPLE) if use_llm is None else use_llm
+    use_llm = C.USE_LLM if use_llm is None else use_llm
     llm = llm or _llm
     rows, i = [], 0
     for r in sampled.itertuples():
@@ -137,7 +137,7 @@ def generate(sampled, n=60, llm=None, use_llm=None):
 
 def make_unanswerable(raw, n=6, llm=None, use_llm=None, seed=7):
     """답없음 문항 — 코퍼스에 없는 전제 (거절 정확도 측정용)"""
-    use_llm = (bool(C.LLM_URL) and not C.IS_SAMPLE) if use_llm is None else use_llm
+    use_llm = C.USE_LLM if use_llm is None else use_llm
     llm = llm or _llm
     topics = '\n'.join('- ' + str(t)[:60] for t in raw['title'].dropna().sample(min(20, len(raw)), random_state=seed))
     rows = []

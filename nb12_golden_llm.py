@@ -21,7 +21,7 @@ import lab_io, lab_search, lab_golden_llm
 for _m in (lab_io, lab_search, lab_golden_llm):
     importlib.reload(_m)
 pd.set_option('display.width', 240); pd.set_option('display.max_columns', 40); pd.set_option('display.max_colwidth', 44)
-USE_LLM = bool(C.LLM_URL) and not C.IS_SAMPLE
+USE_LLM = C.USE_LLM
 print('LAB_MODE =', C.LAB_MODE, '| 생성 방식 =', 'LLM' if USE_LLM else '규칙(샘플 · 형식 확인용)')
 print('선행 조건: nb00 파이프라인 점검 통과 — 적재 · 청킹된 문서에서만 골든셋 생성 가능')
 

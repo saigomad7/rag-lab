@@ -72,7 +72,7 @@ def n_decompose(st, c):
     q = st['question']
     subs = [q]
     if c.get('decompose'):
-        if C.LLM_URL and not C.IS_SAMPLE:
+        if C.USE_LLM:
             try:
                 txt = lab_search.llm_answer(DECOMP_PROMPT.format(q=q), pd.DataFrame(columns=['text', 'doc_id']))
                 subs = [s.strip(' -·0123456789.') for s in str(txt).splitlines() if len(s.strip()) > 6][:3] or [q]
@@ -118,7 +118,7 @@ def n_grade(st, c):
     q, keep = st['question'], []
     for r in st['docs'].itertuples():
         t = str(r.text)
-        if C.LLM_URL and not C.IS_SAMPLE:
+        if C.USE_LLM:
             try:
                 v = lab_search.llm_answer(GRADE_PROMPT.format(q=q, t=t[:800]), pd.DataFrame(columns=['text', 'doc_id']))
                 ok = '예' in str(v)[:10]
@@ -157,7 +157,10 @@ def n_generate(st, c):
     if not len(docs):
         st['answer'] = '확인된 자료 없음'
     else:
-        st['answer'] = lab_search.llm_answer(st['question'], docs.head(c['k']), st.get('_meta'), n=c['k'])
+        try:
+            st['answer'] = lab_search.llm_answer(st['question'], docs.head(c['k']), st.get('_meta'), n=c['k'])
+        except Exception as ex:                      # LLM 호출 실패 — 실행은 계속, 원인을 답변 자리에 남긴다
+            st['answer'] = f'(LLM 호출 실패: {type(ex).__name__}) 상위 근거 → ' + str(docs.iloc[0]['text'])[:80]
     st['top_docs'] = ';'.join(docs['doc_id'].astype(str).head(3)) if len(docs) else ''
     st['trace'].append(('generate', len(st['contexts'])))
     return st

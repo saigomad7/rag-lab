@@ -133,7 +133,7 @@ def make_sql(question, cat, dialect=None, use_llm=None):
     """질문 → SQL. 기본은 카탈로그 기반 규칙 생성(설명 가능), 사내 LLM 이 있으면 llm 모드.
        반환: (sql, how)  how = 'rule' | 'llm' | ''"""
     dialect = dialect or ('sqlite' if C.IS_SAMPLE else 'oracle')
-    use_llm = (not C.IS_SAMPLE and bool(C.LLM_URL)) if use_llm is None else use_llm
+    use_llm = C.USE_LLM if use_llm is None else use_llm
     if use_llm:
         sql = _llm_sql(question, cat, dialect)
         if sql:
@@ -309,7 +309,7 @@ def answer_from_sql(question, df, meta_label='', llm=True):
     table = '| ' + ' | '.join(head.columns) + ' |\n|' + '---|' * len(head.columns) + '\n'
     table += '\n'.join('| ' + ' | '.join(str(v) for v in r) + ' |' for r in head.itertuples(index=False))
     ctx = f'[{meta_label}]\n{table}'
-    if not llm or C.IS_SAMPLE or not C.LLM_URL:
+    if not llm or not C.USE_LLM:
         return ctx
     import lab_search
     return lab_search.llm_answer(question, pd.DataFrame([{'text': ctx, 'doc_id': 'DB'}]))
