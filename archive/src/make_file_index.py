@@ -194,14 +194,14 @@ for i, (k, v) in enumerate([('전체 파일', f'=COUNTIF(A5:A{last},"<>")'),
 # ================= 2. 함수 목록 =================
 rows = []
 for n in sorted(os.listdir(LAB)):
-    if not n.endswith('.py') or n.startswith('nb'):
+    if not n.endswith('.py'):
         continue
     src = open(os.path.join(LAB, n), encoding='utf-8').read()
     try:
         tree = ast.parse(src)
     except SyntaxError:
         continue
-    kind = ROLE.get(n, ('', ''))[0]
+    kind = NB_ROLE.get(n[:4], ('노트북', ''))[0] if n.startswith('nb') else ROLE.get(n, ('', ''))[0]
     for node in tree.body:
         if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
             rows.append((n, kind, node.name + sig(node), '함수', first_doc(node), node.lineno, '', ''))
@@ -223,6 +223,11 @@ for n in sorted(os.listdir(LAB)):
                             cmt = f'목록 {len(v.elts)} 개'
                         elif isinstance(v, ast.Constant):
                             cmt = f'값 = {str(v.value)[:60]}'
+                        else:
+                            try:
+                                cmt = ast.unparse(v)[:70]
+                            except Exception:
+                                cmt = ''
                     rows.append((n, kind, t.id, '설정값', cmt, node.lineno, '', ''))
 
 ws = wb.create_sheet('2_함수목록')
@@ -250,6 +255,45 @@ for i, (k, v) in enumerate([('전체', f'=COUNTIF(C5:C{last},"<>")'),
         c.number_format = '0%'
 
 # ================= 3. 노트북 셀 =================
+NOISE_CALL = {'print', 'len', 'str', 'int', 'float', 'list', 'dict', 'set', 'sorted', 'range', 'enumerate',
+              'zip', 'round', 'abs', 'min', 'max', 'sum', 'open', 'type', 'isinstance', 'importlib.reload',
+              'pd.set_option', 'os.path.join', 'sys.path.insert', 'os.chdir', 'os.path.dirname',
+              'os.path.abspath', 'os.path.exists', 'format', 'bool', 'to_string', 'head', 'tail',
+              'copy', 'items', 'keys', 'values', 'append', 'fillna', 'reset_index', 'astype',
+              'strip', 'split', 'join', 'get', 'to_dict', 'value_counts', 'sort_values', 'round'}
+
+
+def _call_name(node):
+    """호출 표현식에서 이름 추출 — lab_io.load_raw / ret.search 형태로"""
+    fn = node.func
+    parts = []
+    while isinstance(fn, ast.Attribute):
+        parts.append(fn.attr)
+        fn = fn.value
+    if isinstance(fn, ast.Name):
+        parts.append(fn.id)
+    return '.'.join(reversed(parts)) if parts else ''
+
+
+def cell_summary(code):
+    """셀 코드 → (호출하는 함수, 만드는 변수)"""
+    try:
+        tree = ast.parse(code)
+    except SyntaxError:
+        return '', ''
+    calls, names = [], []
+    for node in ast.walk(tree):
+        if isinstance(node, ast.Call):
+            nm = _call_name(node)
+            if nm and nm not in NOISE_CALL and not nm.endswith('.to_string') and nm not in calls:
+                calls.append(nm)
+        if isinstance(node, ast.Assign):
+            for t in node.targets:
+                if isinstance(t, ast.Name) and not t.id.startswith('_') and t.id not in names:
+                    names.append(t.id)
+    return ' · '.join(calls[:6]), ' · '.join(names[:6])
+
+
 cells = []
 for n in sorted(os.listdir(LAB)):
     if not (n.startswith('nb') and n.endswith('.py')):
@@ -260,24 +304,38 @@ for n in sorted(os.listdir(LAB)):
     m = re.search(r'(체크리스트|기입 엑셀): ([^\n]+)', src)
     if m:
         ref = m.group(0)
-    for mm in re.finditer(r'^# %% (.+)$', src, re.M):
+    marks = list(re.finditer(r'^# %% (.+)$', src, re.M))
+    for k, mm in enumerate(marks):
         title = mm.group(1).strip()
         ln = src[:mm.start()].count('\n') + 1
-        cells.append((n, kind, title, ln, ref if title.startswith('[0]') else '', '', ''))
+        end = marks[k + 1].start() if k + 1 < len(marks) else len(src)
+        body = src[mm.end():end]
+        calls, names = cell_summary(body)
+        cells.append((n, kind, title, ln, calls, names, ref if k == 0 else '', '', ''))
 
 ws = wb.create_sheet('3_노트북_셀')
-cols = ['노트북', '구분', '셀 제목 (Ctrl+Enter 로 하나씩 실행)', '줄', '참조 문서', '확인', '메모']
-head(ws, '3. 노트북 셀 목록', f'전체 {len(cells)} 셀 · 위에서 아래로 실행 · F · G 열 기입', cols,
-     [24, 8, 62, 6, 52, 9, 26])
-last = put(ws, cells, cen=(2, 4, 6), inp=(6, 7)) - 1
-check_col(ws, 'F', last)
+cols = ['노트북', '구분', '셀 제목 (Ctrl+Enter 로 하나씩 실행)', '줄', '이 셀이 호출하는 함수',
+        '만들어지는 변수 (Variable Explorer)', '참조 문서', '확인', '메모']
+head(ws, '3. 노트북 셀 목록', f'전체 {len(cells)} 셀 · 위에서 아래로 실행 · H · I 열 기입', cols,
+     [23, 7, 46, 6, 50, 36, 44, 8, 22])
+last = put(ws, cells, cen=(2, 4, 8), inp=(8, 9)) - 1
+check_col(ws, 'H', last)
 prev = None
 for i in range(5, last + 1):
     cur = ws.cell(i, 1).value
     if cur != prev:
-        for j in range(1, 8):
-            ws.cell(i, j).fill = F('F2F7F7') if ws.cell(i, 2).value != '핵심' else OKF
+        for j in range(1, 10):
+            ws.cell(i, j).fill = OKF if ws.cell(i, 2).value == '핵심' else F('F2F7F7')
     prev = cur
+b = last + 2
+ws.cell(b, 1, '집계').font = f(bold=True, color=PRI)
+for i, (k, v) in enumerate([('전체 셀', f'=COUNTIF(C5:C{last},"<>")'),
+                            ('확인 완료', f'=COUNTIF(H5:H{last},"확인")'),
+                            ('진행률', f'=IFERROR(COUNTIF(H5:H{last},"확인")/COUNTIF(C5:C{last},"<>"),"")')], b + 1):
+    ws.cell(i, 1, k).font = f(bold=True); ws.cell(i, 1).border = BOX
+    c = ws.cell(i, 2, v); c.fill = CALC; c.border = BOX; c.font = f()
+    if k == '진행률':
+        c.number_format = '0%'
 
 from openpyxl.workbook.properties import CalcProperties      # noqa: E402
 wb.calculation = CalcProperties(fullCalcOnLoad=True)
