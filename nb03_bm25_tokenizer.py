@@ -34,7 +34,7 @@ print('\n"하이닉스의"·"하이닉스는"이 space 에서는 서로 다른 �
 # %% [2] 코퍼스 + 골든셋 — live 에서는 청크 표본으로 (전체 BM25 는 기존 시스템에서)
 CORPUS_N = 50000                       # live: 불러올 청크 수 (메모리에 맞게)
 corpus = lab_io.load_chunks(n=None if C.IS_SAMPLE else CORPUS_N).dropna(subset=['text']).reset_index(drop=True)
-golden = lab_io.read_table(os.path.join(C.GOLDEN_DIR, 'golden_v1.csv')) if not C.IS_SAMPLE else lab_io.sample_mod().golden()
+golden = lab_io.load_golden()   # 정답지: golden/golden_sample100.csv (직접 수정 가능)
 golden = golden.fillna('')
 print('코퍼스', len(corpus), '청크 · 골든셋', len(golden), '문항')
 if not C.IS_SAMPLE:

@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="ko"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>밖에서 먼저 돌려보기</title>
+<style>
+:root{--ink:#111B1E;--ink2:#2A393D;--mut:#5B6A6E;--bg:#D8E0E1;--sf:#F7FAFA;--sf2:#ECF2F2;--line:#BFCACB;--hair:#D9E2E2;
+ --pri:#185463;--wash:#DAEAED;--warn:#8F6209;--warnw:#F5EAD0;--ok:#2F6B4F;--okw:#DFEDE5;--risk:#8C2F3E;--riskw:#F3DFE2;
+ --sans:"Malgun Gothic","Apple SD Gothic Neo",system-ui,sans-serif;--mono:Consolas,"D2Coding",monospace}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:14.5px;line-height:1.75;padding:0 16px 60px;word-break:keep-all}
+.wrap{max-width:900px;margin:0 auto}
+header{padding:38px 0 18px;border-bottom:2px solid var(--ink)}
+.kick{font-family:var(--mono);font-size:11px;letter-spacing:.2em;color:var(--pri);margin:0 0 10px}
+h1{font-size:clamp(23px,4vw,32px);font-weight:700;letter-spacing:-.03em;margin:0 0 10px;line-height:1.25}
+.lede{font-size:15.5px;color:var(--ink2);margin:0;max-width:66ch}
+.box{background:var(--sf2);border-left:3px solid var(--pri);padding:11px 16px;margin:16px 0 0}
+.box p{margin:0;font-size:14px;color:var(--ink2)}
+section{padding:30px 0 6px;border-top:1px solid var(--line)}
+h2{font-size:19px;font-weight:700;letter-spacing:-.02em;margin:0 0 4px}
+h2 .n{font-family:var(--mono);font-size:12px;color:#fff;background:var(--pri);width:24px;height:24px;border-radius:50%;
+ display:inline-flex;align-items:center;justify-content:center;margin-right:9px;vertical-align:2px}
+.sub{color:var(--mut);font-size:14px;margin:0 0 12px}
+h3{font-size:15.5px;margin:22px 0 4px;color:var(--pri)}
+.tw{overflow-x:auto;background:var(--sf);border:1px solid var(--line);border-radius:3px;margin:12px 0}
+table{width:100%;border-collapse:collapse;font-size:13.5px;min-width:520px}
+th{background:var(--sf2);text-align:left;padding:8px 11px;border-bottom:1.5px solid var(--ink);font-size:12px;
+ font-family:var(--mono);color:var(--mut);white-space:nowrap}
+td{padding:8px 11px;border-bottom:1px solid var(--hair);vertical-align:top;color:var(--ink2)}
+tr:last-child td{border-bottom:0}
+td.k{font-weight:600;color:var(--ink);white-space:nowrap}
+code{font-family:var(--mono);font-size:12.5px;background:var(--sf2);border:1px solid var(--hair);padding:1px 5px;border-radius:2px;color:var(--ink)}
+pre{background:#111B1E;color:#E4EDEE;padding:13px 15px;border-radius:3px;overflow-x:auto;font-family:var(--mono);font-size:12.5px;line-height:1.6;margin:12px 0}
+pre b{color:#85CEDB;font-weight:400}
+.note{background:var(--wash);border-left:3px solid var(--pri);padding:10px 14px;margin:14px 0;font-size:13.5px}
+.warn{background:var(--warnw);border-left:3px solid var(--warn);padding:10px 14px;margin:14px 0;font-size:13.5px;color:#5C440C}
+.ok{background:var(--okw);border-left:3px solid var(--ok);padding:10px 14px;margin:14px 0;font-size:13.5px;color:#1F4733}
+ol.s{counter-reset:s;list-style:none;padding:0;margin:14px 0}
+ol.s li{position:relative;padding:10px 0 10px 34px;border-top:1px dashed var(--hair)}
+ol.s li:first-child{border-top:0}
+ol.s li::before{counter-increment:s;content:counter(s);position:absolute;left:0;top:12px;width:22px;height:22px;border-radius:50%;
+ background:var(--pri);color:#fff;font-family:var(--mono);font-size:11.5px;display:flex;align-items:center;justify-content:center}
+ol.s b{display:block;font-size:15px;color:var(--ink)}
+ol.s span{font-size:13.5px;color:var(--mut)}
+footer{padding:26px 0 0;font-family:var(--mono);font-size:11px;color:var(--mut);border-top:1px solid var(--line);margin-top:30px}
+.fig{background:var(--sf);border:1px solid var(--line);padding:14px;margin:14px 0;overflow-x:auto}
+.fig svg{display:block;min-width:620px;width:100%;height:auto}
+</style></head><body><div class="wrap">
+
+<header>
+<p class="kick">RAG LAB / 사외 연습</p>
+<h1>밖에서 먼저 돌려보기</h1>
+<p class="lede">LLM 없이, 고정된 샘플 데이터와 고정된 정답지로 이 코드가 어떻게 도는지 확인합니다.
+설정할 것 없고 키도 필요 없습니다. 압축 풀고 바로 실행하면 됩니다.</p>
+<div class="box"><p><b>목적</b> — 성능을 측정하는 게 아니라 <b>구조를 이해하는 것</b>입니다.
+값을 하나씩 바꿔 보며 "무엇을 건드리면 점수가 어떻게 움직이는지"를 손에 익힌 뒤, 그 감각을 사내 DB로 가져갑니다.</p></div>
+</header>
+
+<section>
+<h2><span class="n">1</span>무엇이 들어 있나</h2>
+<p class="sub">전부 고정입니다. 몇 번을 돌려도 같은 숫자가 나옵니다.</p>
+<div class="tw"><table>
+<tr><th>구분</th><th>내용</th><th>위치</th></tr>
+<tr><td class="k">문서 100건</td><td>뉴스 32 · 증권사 18 · 기관 10 · 메일 14 · 회의록 8 · 보고서 12 · 임원 6<br>기간 2026-04 ~ 09 · 제가 지어낸 가짜 시장 자료</td><td><code>lab_sample100.py</code></td></tr>
+<tr><td class="k">청크 182개</td><td>문서를 검색 단위로 자른 조각</td><td>같은 파일</td></tr>
+<tr><td class="k">정답지 30문항</td><td>질문 · 정답 문서 · 정답 문장<br>수치 17 · 사실 5 · 비교 3 · 종합 2 · 답없음 3</td><td><code>golden/golden_sample100.csv</code></td></tr>
+</table></div>
+<div class="warn"><b>일부러 흠집을 냈습니다.</b> 발행일 결측 4건 · 본문 결측 2건 · 재송고 중복 3쌍 · 표 깨짐 2건 ·
+고아 청크 1건 · 청킹 누락 1건. 점검 노트북이 이걸 잡아내는지 보시면 됩니다.</div>
+<div class="note"><b>정답지는 직접 고치셔도 됩니다.</b> <code>golden_sample100.csv</code>를 엑셀로 열어 질문을 바꾸거나 추가하면,
+다음 실행부터 그대로 반영됩니다. 정답 문서 칸에는 문서 번호(<code>N019</code>, <code>B014</code> 같은)를 적으면 됩니다.</div>
+</section>
+
+<section>
+<h2><span class="n">2</span>준비 — 2분</h2>
+<ol class="s">
+<li><b>압축 풀기</b><span>경로에 한글·공백 없는 곳 권장 (예: <code>C:\work\rag_lab</code>)</span></li>
+<li><b>패키지</b><span>Spyder 콘솔에 <code>%pip install pandas numpy openpyxl</code> — 이 셋뿐입니다</span></li>
+<li><b>끝</b><span><code>.env</code> 만들 필요 없습니다. 키도 필요 없습니다.</span></li>
+</ol>
+<div class="ok"><b>확인</b> — 아무 노트북이나 열어 <code>[0] 준비</code> 셀을 실행했을 때
+<code>LAB_MODE = sample</code> 과 <code>SAMPLE_SET = 100</code> 이 찍히면 정상입니다.</div>
+</section>
+
+<section>
+<h2><span class="n">3</span>순서 — 다섯 개만 돌립니다</h2>
+<p class="sub">Spyder 에서 파일을 열고 <b>Ctrl+Enter</b> 로 셀을 하나씩. 반드시 <code>[0] 준비</code> 셀부터.</p>
+<div class="tw"><table>
+<tr><th>순서</th><th>파일</th><th>무엇을 보나</th><th>확인 포인트</th></tr>
+<tr><td class="k">1</td><td><code>nb01_inventory</code></td><td>데이터가 어떻게 생겼나</td><td>소스별 건수 · 기간 · 본문 길이</td></tr>
+<tr><td class="k">2</td><td><code>nb02_parse_chunk</code></td><td>문서가 청크로 어떻게 쪼개지나</td><td>정제 전후 비교 · 청크 길이 분포</td></tr>
+<tr><td class="k">3</td><td><code>nb00_pipeline_check</code></td><td>적재 문제를 잡아내는가</td><td><b>미달 3건</b>이 뜨면 정상</td></tr>
+<tr><td class="k">4</td><td><code>nb03_bm25_tokenizer</code></td><td>한국어 조사 처리가 검색에 미치는 영향</td><td>space / josa / kiwi 점수 차이</td></tr>
+<tr><td class="k">5</td><td><code>nb06_retrieval_eval</code></td><td><b>핵심</b> — 검색 방식 6종 점수 비교</td><td>BM25 · 하이브리드 · 리랭크 · MMR</td></tr>
+</table></div>
+<div class="warn">나머지 노트북(<code>nb10</code> · <code>nb12</code> · <code>nb13</code>)은 <b>LLM이 필요해서 밖에서는 의미가 없습니다.</b>
+사내에서 LLM을 붙인 뒤에 돌리십시오.</div>
+</section>
+
+<section>
+<h2><span class="n">4</span>결과 읽는 법</h2>
+<p class="sub"><code>nb06</code>이 내놓는 표가 이 연습의 결론입니다.</p>
+<pre>mode                 hit@1   hit@5   recall@5    mrr
+bm25                 0.667   0.889      0.870   0.760
+dense                0.296   0.704      0.685   0.532
+hybrid               0.556   0.852      0.833   0.692
+hybrid+rerank        0.630   0.889      0.870   0.767
+hybrid+rerank+mmr    0.630   0.852      0.852   0.750</pre>
+<div class="tw"><table>
+<tr><th>지표</th><th>묻는 것</th><th>읽는 법</th></tr>
+<tr><td class="k">hit@1</td><td>첫 번째가 정답이었나</td><td>0.667 = 30문항 중 20개를 1위로 맞힘</td></tr>
+<tr><td class="k">hit@5</td><td>상위 5개 안에 정답이 있었나</td><td>"찾기는 찾았나"</td></tr>
+<tr><td class="k">recall@5</td><td>정답 문서를 몇 %나 회수했나</td><td>정답이 여러 개인 문항에서 의미</td></tr>
+<tr><td class="k">mrr</td><td>정답이 몇 번째로 나왔나</td><td>0.76 → 평균 1.3번째. 1.0이면 항상 1위</td></tr>
+</table></div>
+<div class="note"><b>샘플 모드의 <code>dense</code>는 낮게 나오는 게 정상입니다.</b>
+진짜 임베딩 모델 대신 해시로 흉내 낸 것이라 그렇습니다. 사내에서 BGE-M3를 붙이면 이 값이 올라갑니다.
+<b>BM25 계열 숫자는 진짜</b>이므로 그쪽을 보십시오.</div>
+</section>
+
+<section>
+<h2><span class="n">5</span>직접 바꿔 보기 — 이게 핵심입니다</h2>
+<p class="sub">값을 하나 고치고 다시 돌리면 점수가 움직입니다. <b>한 번에 하나씩</b> 바꾸십시오.</p>
+<div class="tw"><table>
+<tr><th>실험</th><th>어디를</th><th>어떻게</th><th>무엇을 보나</th></tr>
+<tr><td class="k">조사 처리</td><td><code>nb03</code> · <code>nb06</code>의 <code>BM25_TOK</code></td><td><code>'space'</code> → <code>'josa'</code></td><td>한국어 조사를 떼면 얼마나 좋아지나</td></tr>
+<tr><td class="k">검색 조합</td><td><code>nb06</code>의 <code>MODES</code></td><td>줄에서 모드를 빼거나 더함</td><td>BM25 단독 vs 하이브리드 vs 리랭크</td></tr>
+<tr><td class="k">청크 크기</td><td><code>lab_sources.py</code>의 <code>chunk=500</code></td><td><code>300</code> 또는 <code>800</code>으로</td><td>잘게 자르면 잘 찾나, 문맥이 끊기나</td></tr>
+<tr><td class="k">결합·다양성</td><td><code>nb06</code>의 스윕 셀</td><td>RRF <code>k</code> · MMR <code>λ</code> 값</td><td>순위 결합과 중복 제거의 효과</td></tr>
+<tr><td class="k">정답지</td><td><code>golden_sample100.csv</code></td><td>질문을 직접 바꿔 봄</td><td>어떤 질문에 약한가</td></tr>
+</table></div>
+<div class="ok"><b>여기서 얻는 것</b> — "우리 데이터에서는 무엇을 건드려야 하나"에 대한 감각입니다.
+사내에 가서 처음 측정할 때, 어디부터 손댈지 아는 상태로 시작하게 됩니다.</div>
+<div class="warn"><b>두 개를 동시에 바꾸지 마십시오.</b> 어느 쪽 효과인지 알 수 없게 됩니다.
+그리고 문항이 30개라 <b>1문항 = 3.3%p</b>입니다. 5%p 이하 차이는 우연일 수 있습니다.</div>
+</section>
+
+<section>
+<h2><span class="n">6</span>사내로 가져갈 때</h2>
+<p class="sub">밖에서 익힌 그대로, 데이터 원천만 바꿉니다. 노트북은 고치지 않습니다.</p>
+<div class="fig">
+<svg viewBox="0 0 640 150" xmlns="http://www.w3.org/2000/svg" font-family="Malgun Gothic,sans-serif" font-size="11.5">
+<defs><marker id="a" markerWidth="8" markerHeight="8" refX="7" refY="3" orient="auto"><path d="M0,0 L7,3 L0,6 z" fill="#185463"/></marker></defs>
+<rect x="0" y="20" width="190" height="52" rx="3" fill="#fff" stroke="#BFCACB"/>
+<text x="95" y="42" text-anchor="middle" font-weight="700">밖 (지금)</text>
+<text x="95" y="60" text-anchor="middle" fill="#5B6A6E">샘플 100건 · 정답지 30</text>
+<rect x="0" y="86" width="190" height="46" rx="3" fill="#F7FAFA" stroke="#BFCACB"/>
+<text x="12" y="104" fill="#2A393D">· 설정 없음</text><text x="12" y="122" fill="#2A393D">· LLM 없음</text>
+<line x1="190" y1="46" x2="238" y2="46" stroke="#185463" marker-end="url(#a)"/>
+<rect x="245" y="20" width="190" height="52" rx="3" fill="#DAEAED" stroke="#8BB5BE"/>
+<text x="340" y="42" text-anchor="middle" font-weight="700" fill="#185463">고칠 곳 3군데</text>
+<text x="340" y="60" text-anchor="middle" fill="#2A393D">설정 파일만</text>
+<rect x="245" y="86" width="190" height="46" rx="3" fill="#F7FAFA" stroke="#BFCACB"/>
+<text x="257" y="102" fill="#2A393D">· lab_config — 테이블 · 컬럼</text>
+<text x="257" y="117" fill="#2A393D">· lab_sources — 카테고리</text>
+<text x="257" y="130" fill="#2A393D">· .env — 접속 정보</text>
+<line x1="435" y1="46" x2="483" y2="46" stroke="#185463" marker-end="url(#a)"/>
+<rect x="490" y="20" width="150" height="52" rx="3" fill="#fff" stroke="#BFCACB"/>
+<text x="565" y="42" text-anchor="middle" font-weight="700">사내</text>
+<text x="565" y="60" text-anchor="middle" fill="#5B6A6E">실제 DB · 실제 LLM</text>
+<rect x="490" y="86" width="150" height="46" rx="3" fill="#F7FAFA" stroke="#BFCACB"/>
+<text x="502" y="104" fill="#2A393D">· 노트북 그대로</text>
+<text x="502" y="122" fill="#2A393D">· 정답지만 새로</text>
+</svg>
+</div>
+<div class="tw"><table>
+<tr><th>고칠 것</th><th>무엇을</th></tr>
+<tr><td class="k">.env</td><td>Oracle 접속 · Milvus 주소 · 사내 LLM 주소 · <code>LAB_MODE=live</code></td></tr>
+<tr><td class="k">lab_config.py</td><td><code>RAW</code> · <code>CHUNK</code> · <code>MV</code> — 왼쪽은 그대로, <b>오른쪽만 사내 테이블·컬럼 이름으로</b>. 없는 컬럼은 <code>None</code>, 더 있으면 줄 추가</td></tr>
+<tr><td class="k">lab_sources.py</td><td><code>SOURCES</code> — 사내 카테고리로. 항목을 넣으면 생기고 지우면 없어짐. <code>alias</code>에 사내 DB 값(<code>News</code>, <code>research</code> 같은)을 적음</td></tr>
+<tr><td class="k">golden_v1.csv</td><td>사내 문서로 만든 정답지. 밖에서 쓴 <code>golden_sample100.csv</code>와 <b>같은 열 구조</b></td></tr>
+</table></div>
+<div class="note"><b>사내에서 첫 실행</b> — <code>nb00_pipeline_check</code>부터. <code>[1b]</code> 셀이
+사내 DOC_TYPE 값이 전부 인식됐는지 알려 줍니다. "정의 없음"이 있으면 <code>lab_sources</code>를 먼저 고치십시오.</div>
+</section>
+
+<section>
+<h2><span class="n">7</span>파일 지도</h2>
+<div class="tw"><table>
+<tr><th>위치</th><th>무엇</th><th>여는가</th></tr>
+<tr><td class="k"><code>nb00 ~ nb13.py</code></td><td>실행 노트북 14개 (밖에서는 5개만)</td><td>예 — 셀 단위 실행</td></tr>
+<tr><td class="k"><code>lab_config.py</code></td><td>접속 · 테이블 · 컬럼 설정</td><td>사내 가서 수정</td></tr>
+<tr><td class="k"><code>lab_sources.py</code></td><td>소스 카테고리 정의</td><td>사내 가서 수정</td></tr>
+<tr><td class="k"><code>lab_*.py</code> 나머지</td><td>검색 · 지표 · 정제 엔진</td><td>아니오</td></tr>
+<tr><td class="k"><code>golden/golden_sample100.csv</code></td><td>고정 정답지 30문항</td><td>실험할 때 직접 수정</td></tr>
+<tr><td class="k"><code>out/</code></td><td>실행 결과 CSV · 엑셀</td><td>결과 확인용</td></tr>
+<tr><td class="k"><code>USAGE.md</code></td><td>상세 사용법 · 오류 대처</td><td>막혔을 때</td></tr>
+<tr><td class="k"><code>archive/inside/</code></td><td>사내용 문서 — 체크리스트 · 실행 가이드 · 평가팩 · 이력대장</td><td><b>사내 갈 때 꺼냄</b></td></tr>
+</table></div>
+<div class="note">밖에서 볼 문서는 <b>이 한 장</b>이면 됩니다. 나머지 문서는 사내에서 보고·기록할 때 쓰는 것이라
+<code>archive/inside/</code>로 치워 뒀습니다. 지우지 않았으니 필요할 때 꺼내시면 됩니다.</div>
+</section>
+
+<footer>RAG LAB · 사외 연습 안내 · 2026-09-25 · 반도체 MIS DT<br>
+문서 100건 · 청크 182 · 정답지 30문항 고정 · LLM 불필요</footer>
+</div></body></html>

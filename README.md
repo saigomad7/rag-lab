@@ -24,10 +24,9 @@ Oracle(원문·청크) → BGE-M3 → Milvus → 하이브리드 검색(BM25 + D
 
 설치 · 설정 · 셀별 설명은 **[USAGE.md](USAGE.md)** 를 봅니다.
 
-먼저 읽을 문서: **[docs/rag_runbook_t2_rev1.html](docs/rag_runbook_t2_rev1.html)** — 전체 그림 · 준비 · 실행 순서 · 지표 읽는 법 · 고도화 방법.
-실행 순서는 **[docs/rag_run_guide_rev1.xlsx](docs/rag_run_guide_rev1.xlsx)**, 점검 항목은 **[docs/rag_checklist_rev10.xlsx](docs/rag_checklist_rev10.xlsx)** 를 봅니다.
+먼저 읽을 문서: **[docs/practice_guide.html](docs/practice_guide.html)** — 밖에서 LLM 없이 돌려보는 안내 한 장.
 
-돌리는 데 필요한 문서는 **[docs/](docs/)** 에 3개만 두었고, 나머지(기입용 엑셀 · 설계 문서 · 생성 스크립트)는 **[archive/](archive/)** 에 있습니다.
+사내용 문서(체크리스트 · 실행 가이드 · 평가팩 · 이력대장)는 **[archive/inside/](archive/inside/)** 에 있습니다.
 
 ```text
 %cd C:\work\rag_lab

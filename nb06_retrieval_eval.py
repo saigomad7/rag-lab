@@ -22,12 +22,8 @@ for _m in (lab_io, lab_text, lab_search, lab_eval):
     importlib.reload(_m)
 pd.set_option('display.width', 200); pd.set_option('display.max_columns', 30); pd.set_option('display.max_colwidth', 60)
 
-# %% [1] 골든셋 — golden/golden_v1.csv (qid, question, q_type, source, gold_doc_ids, gold_text)
-if C.IS_SAMPLE:
-    golden = lab_io.sample_mod().golden()
-else:
-    golden = lab_io.read_table(os.path.join(C.GOLDEN_DIR, 'golden_v1.csv'))
-golden = golden.fillna('')
+# %% [1] 정답지 — golden/golden_sample100.csv (사내: golden_v1.csv) · 직접 고쳐가며 실험 가능
+golden = lab_io.load_golden()
 print(len(golden), '문항 ·', golden.q_type.value_counts().to_dict())
 
 # %% [2] 검색기 구성 — PARTS 로 켤 검색기 선택, BM25_TOK 로 토크나이저 선택

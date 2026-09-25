@@ -63,6 +63,21 @@ def _std_types(df):
     return df
 
 
+def load_golden():
+    """
+    정답지(골든셋). 파일이 있으면 그것을 쓴다 — 직접 고쳐가며 실험할 수 있게.
+      live   : golden/golden_v1.csv
+      sample : golden/golden_sample100.csv  (없으면 코드가 생성)
+    """
+    name = 'golden_v1.csv' if not C.IS_SAMPLE else 'golden_sample100.csv'
+    path = os.path.join(C.GOLDEN_DIR, name)
+    if os.path.exists(path):
+        df = read_table(path)
+        if len(df):
+            return df.fillna('')
+    return sample_mod().golden().fillna('') if C.IS_SAMPLE else pd.DataFrame()
+
+
 def load_raw(n=None, where=None, sample_pct=None):
     """원문 문서. n: 최대 행 수, where: SQL 조건(예: "DOC_TYPE='EMAIL'"), sample_pct: 테이블 표본 %."""
     if C.IS_SAMPLE:

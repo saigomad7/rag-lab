@@ -55,11 +55,7 @@ else:
 
 # %% [4] 골든셋으로 측정
 RUN_ID, SETTING = 'RUN-001', '기준선(현행)'
-golden = lab_io.read_table(os.path.join(C.GOLDEN_DIR, 'golden_v1.csv')) if os.path.exists(os.path.join(C.GOLDEN_DIR, 'golden_v1.csv')) else None
-if golden is None or not len(golden):
-    golden = lab_io.sample_mod().golden() if C.IS_SAMPLE else pd.DataFrame()
-    print('(골든셋 파일 없음 → 샘플 골든셋 사용)')
-golden = golden.fillna('')
+golden = lab_io.load_golden()
 ret = lab_search.Retriever(chunks, bm25_tokenizer='kiwi')
 search_fn = lambda q, mode, k: ret.search(q, mode, k=k, cand=50)
 detail, summary = lab_eval.evaluate(search_fn, golden, ['hybrid+rerank+mmr'], k=10)

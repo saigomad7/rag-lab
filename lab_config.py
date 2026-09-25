@@ -108,8 +108,8 @@ SEARCH_API_TOKEN = env('SEARCH_API_TOKEN', '')
 #   DB · Milvus 없이 샘플 문서 16건을 쓰면서 임베딩 · 리랭커 · LLM 은 실제 호출한다.
 #   사내 데이터는 들어가지 않으므로 외부 API(OpenAI 등)를 써도 무방하다. 사내에서는 쓰지 않는다.
 SAMPLE_MODELS = env('SAMPLE_MODELS', 'false').lower() == 'true'
-# 샘플 데이터 규모 — 16(기본, lab_sample) | 100(lab_sample100, 지표가 의미를 갖는 규모)
-SAMPLE_SET = env('SAMPLE_SET', '16')
+# 샘플 데이터 규모 — 100(기본, 문서 100건 · 청크 182 · 정답지 30문항) | 16(lab_sample, 최소)
+SAMPLE_SET = env('SAMPLE_SET', '100')
 if IS_SAMPLE and not SAMPLE_MODELS:                      # 샘플 모드 기본값은 모델 없이
     EMBED_MODE, RERANK_MODE = 'sample', 'sample'
 
