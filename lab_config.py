@@ -85,6 +85,10 @@ def _endpoint(url, tail):
 
 EMBED_URL = _endpoint(EMBED_URL, 'embeddings')
 EMBED_API_KEY = env('EMBED_API_KEY', '')       # 비우면 LLM_API_KEY 를 쓴다
+# 무료 키 대응 — 한 번에 몰아치지 않게
+EMBED_BATCH = int(env('EMBED_BATCH', '16'))    # 한 요청에 보낼 문장 수
+EMBED_RPM = int(env('EMBED_RPM', '0'))         # 분당 요청 수 제한 (0 = 제한 없음 · 무료 키는 5~15 권장)
+EMBED_CACHE = env('EMBED_CACHE', 'true').lower() == 'true'   # 같은 문장은 다시 호출하지 않는다
 
 LLM_URL = env('LLM_URL', '')                   # .../v1/chat/completions (OpenAI 호환)
 LLM_MODEL = env('LLM_MODEL', '')

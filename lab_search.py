@@ -6,6 +6,9 @@
 import re
 import math
 import hashlib
+import os
+import pickle
+import time
 import json
 import numpy as np
 import pandas as pd
@@ -213,6 +216,8 @@ class Embedder:
         self.mode = mode or C.EMBED_MODE
         self.max_length = max_length or C.EMBED_MAX_LENGTH
         self.model = None
+        self._cache = None
+        self._last_call = 0.0
         if self.mode == 'local':
             try:
                 from FlagEmbedding import BGEM3FlagModel
@@ -224,6 +229,63 @@ class Embedder:
                 return
             self.model = BGEM3FlagModel(C.BGE_M3_PATH, use_fp16=_fp16())
 
+    # ---- 임베딩 캐시 (api 모드) — 같은 문장은 재호출하지 않는다 ----
+    def _cache_path(self):
+        d = os.path.join(C.OUT_DIR, '_embed_cache')
+        os.makedirs(d, exist_ok=True)
+        safe = re.sub(r'[^A-Za-z0-9_.-]', '_', f'{C.EMBED_MODEL}')
+        return os.path.join(d, f'{safe}.pkl')
+
+    def _cache_load(self):
+        if self._cache is not None:
+            return self._cache
+        self._cache = {}
+        if C.EMBED_CACHE:
+            try:
+                with open(self._cache_path(), 'rb') as f:
+                    self._cache = pickle.load(f)
+                print(f'  임베딩 캐시 {len(self._cache)} 건 불러옴')
+            except Exception:
+                pass
+        return self._cache
+
+    def _cache_save(self):
+        if not C.EMBED_CACHE or not self._cache:
+            return
+        try:
+            with open(self._cache_path(), 'wb') as f:
+                pickle.dump(self._cache, f)
+        except Exception as ex:
+            print('  (임베딩 캐시 저장 생략:', type(ex).__name__, ')')
+
+    def _post(self, batch):
+        """임베딩 1회 호출 — 429 는 대기 후 재시도(최대 4회)"""
+        import requests
+        hdr = {'Authorization': f'Bearer {C.EMBED_API_KEY}'} if C.EMBED_API_KEY not in ('', 'none') else {}
+        wait = 20
+        for attempt in range(4):
+            if C.EMBED_RPM > 0:                       # 분당 요청 수 제한
+                gap = 60.0 / C.EMBED_RPM
+                since = time.time() - self._last_call
+                if since < gap:
+                    time.sleep(gap - since)
+            r = requests.post(C.EMBED_URL, headers=hdr,
+                              json={'model': C.EMBED_MODEL, 'input': batch},
+                              timeout=C.HTTP_TIMEOUT, verify=C.VERIFY_SSL)
+            self._last_call = time.time()
+            if r.status_code == 429 and attempt < 3:
+                m = re.search(r'retryDelay["\s:]+(\d+)', r.text or '')
+                sec = int(m.group(1)) if m else wait
+                print(f'  한도 초과(429) — {sec}초 대기 후 재시도 {attempt + 1}/3')
+                time.sleep(sec)
+                wait = min(wait * 2, 120)
+                continue
+            if r.status_code >= 400:
+                raise RuntimeError(_api_hint('임베딩', C.EMBED_URL, C.EMBED_MODEL, r))
+            return [d['embedding'] for d in r.json()['data']]
+        raise RuntimeError('임베딩 API 실패 [429] 재시도 후에도 한도 초과 — '
+                           '.env 에 EMBED_RPM=5 · EMBED_BATCH=8 로 낮추거나, 잠시 후 다시 실행하세요')
+
     def encode(self, texts, batch_size=16):
         texts = list(texts)
         if self.mode == 'local':
@@ -233,17 +295,19 @@ class Embedder:
             sparse = [{int(k): float(v) for k, v in lw.items()} for lw in out['lexical_weights']]
             return {'dense': dense, 'sparse': sparse}
         if self.mode == 'api':
-            import requests
-            hdr = {'Authorization': f'Bearer {C.EMBED_API_KEY}'} if C.EMBED_API_KEY not in ('', 'none') else {}
-            vecs = []
-            for i in range(0, len(texts), batch_size):
-                r = requests.post(C.EMBED_URL, headers=hdr,
-                                  json={'model': C.EMBED_MODEL, 'input': texts[i:i + batch_size]},
-                                  timeout=C.HTTP_TIMEOUT, verify=C.VERIFY_SSL)
-                if r.status_code >= 400:
-                    raise RuntimeError(_api_hint('임베딩', C.EMBED_URL, C.EMBED_MODEL, r))
-                vecs += [d['embedding'] for d in r.json()['data']]
-            d = np.asarray(vecs, dtype=np.float32)
+            cache = self._cache_load()
+            keys = [hashlib.md5(t.encode('utf-8', 'ignore')).hexdigest() for t in texts]
+            todo = [i for i, k in enumerate(keys) if k not in cache]
+            bs = min(batch_size, C.EMBED_BATCH)
+            if todo:
+                print(f'  임베딩 호출 {len(todo)} 건 (캐시 {len(texts) - len(todo)} 건 재사용) · 배치 {bs}')
+            for s0 in range(0, len(todo), bs):
+                idx = todo[s0:s0 + bs]
+                for j, v in zip(idx, self._post([texts[j] for j in idx])):
+                    cache[keys[j]] = np.asarray(v, dtype=np.float32)
+            if todo:
+                self._cache_save()
+            d = np.vstack([cache[k] for k in keys]) if texts else np.zeros((0, 8), dtype=np.float32)
             return {'dense': d / np.linalg.norm(d, axis=1, keepdims=True), 'sparse': None}
         # sample
         dense = np.vstack([_hash_vec(t) for t in texts]) if texts else np.zeros((0, 256))
