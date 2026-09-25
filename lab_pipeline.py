@@ -72,14 +72,9 @@ def meta_completeness(raw, required=None):
     required = required or lab_sources.required_map()
     out = []
     for t, g in raw.groupby('doc_type'):
-        spec = lab_sources.SOURCES.get(t)
-        if spec is not None and not spec.get('enabled', True):      # 사용 안 함 유형 — 판정 제외
-            out.append(dict(소스=lab_sources.ko(t), 항목='-', 건수=len(g), 충족=0, 충족률=None,
-                            판정='제외', 비고='lab_sources 에서 사용 안 함(enabled=False) — 데이터는 남아 있음'))
-            continue
-        if spec is None:                                            # 정의 없는 유형 — 기준 없음
-            out.append(dict(소스=t, 항목='-', 건수=len(g), 충족=0, 충족률=None,
-                            판정='미정의', 비고='lab_sources.SOURCES 에 없음 → 기준 미적용 · 매핑 확인 필요'))
+        if t not in lab_sources.SOURCES:          # 정의에 없는 유형 — 점검 기준이 없음
+            out.append(dict(소스=t, 항목='-', 건수=len(g), 충족=0, 충족률=None, 판정='정의 없음',
+                            비고='lab_sources.SOURCES 에 없음 → 점검 기준 미적용'))
             continue
         cols = required.get(t, ['title', 'published_at'])
         for c in cols:
@@ -101,10 +96,8 @@ def type_distribution(raw, chunks=None):
     for t, g in raw.groupby('doc_type'):
         d = pd.to_datetime(g['published_at'], errors='coerce')
         nc = int(chunks[chunks.doc_id.isin(g.doc_id)].shape[0]) if chunks is not None else np.nan
-        spec = lab_sources.SOURCES.get(t, {})
         out.append(dict(소스=lab_sources.ko(t), 코드=t,
-                        사용=('O' if spec.get('enabled', True) else 'X') if spec else '미정의',
-                        문서수=len(g),
+                        정의=('O' if t in lab_sources.SOURCES else '없음'), 문서수=len(g),
                         비중=round(_rate(len(g), len(raw)), 3), 청크수=nc,
                         문서당_청크=round(_rate(nc, len(g)), 1) if chunks is not None else np.nan,
                         최초=str(d.min())[:10], 최신=str(d.max())[:10],

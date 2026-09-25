@@ -91,7 +91,7 @@ sheets = [
  ('3_노트북_상세', '14개 각각 무엇을 하는지 · 셀 수 · 입력 · 출력 · 필수 여부'),
  ('4_설정_기입', '.env 와 lab_config 에서 채울 항목 (여기 적고 옮겨 넣기)'),
  ('5_안돌리는_파일', '라이브러리 14개 역할 — 직접 실행하지 않음'),
- ('6_소스유형_수정', '★ 소스 카테고리 추가 · 이름 변경 · 흡수 · 기준 변경하는 법'),
+ ('6_소스카테고리_수정', '★ 카테고리 추가 · 제거 · 이름 변경 · 사내 코드 대응'),
 ]
 for i, (a, b) in enumerate(sheets, r0 + 1):
     ws.cell(i, 1, a).font = f(bold=True); ws.cell(i, 1).border = BOX
@@ -264,7 +264,7 @@ D5 = [
  ('lab_sql.py', '정형 연계 — 라우팅 · SQL 생성 · 정적 검증 · 실행', '허용목록 조정 시'),
  ('lab_sample.py', '샘플 데이터 16건 (sample 모드 기본)', '안 열어도 됨'),
  ('lab_sample100.py', '확장 샘플 100건 (SAMPLE_SET=100)', '안 열어도 됨'),
- ('lab_sources.py', '★ 소스 유형 정의 — 이름 · 필수 메타 · 정제 규칙 · 청킹 기본값', '★ 수정함'),
+ ('lab_sources.py', '★ 소스 카테고리 정의 — 코드 · 이름 · 사내 DB 값 · 필수 메타 · 정제 · 청킹', '★ 수정함'),
 ]
 last = rows(ws, D5, cen=(3,), bold=(1,))
 for i in range(5, last):
@@ -273,42 +273,35 @@ for i in range(5, last):
             ws.cell(i, j).fill = WARN
 
 
-# ================= 6. 소스 유형 수정 =================
-ws = wb.create_sheet('6_소스유형_수정')
-cols = ['상황', '어디를 고치나', '무엇을 쓰나', '예시', '확인 방법']
-head(ws, '6. 소스 유형(카테고리) 수정 방법', '유형 정의는 lab_sources.py 한 곳 · 사내 코드 연결은 lab_config.DOC_TYPE_MAP 한 곳',
-     cols, [26, 26, 34, 52, 30])
+# ================= 6. 소스 카테고리 수정 =================
+ws = wb.create_sheet('6_소스카테고리_수정')
+cols = ['하고 싶은 것', '어떻게', '예시', '확인']
+head(ws, '6. 소스 카테고리 추가 · 제거 · 이름 변경', 'lab_sources.py 의 SOURCES 딕셔너리 한 곳 — 한 줄이 한 카테고리',
+     cols, [22, 40, 62, 30])
 D6 = [
- ('새 유형 추가 (예: SNS)', 'lab_sources.py → SOURCES',
-  'SOURCES 에 항목 추가 (SNS 예시가 주석으로 들어 있음 — 해제만 하면 됨)',
-  "'SNS': dict(ko='SNS', group='외부', security=0, required=['org_name'],\n  clean=dict(noise=[r'^RT\\s@\\S+', r'https?://\\S+']), chunk=dict(size=280))",
-  'nb00 [1b] 셀에서 표에 보이는지'),
- ('사내 코드가 다름', 'lab_config.py → DOC_TYPE_MAP',
-  '왼쪽에 사내 코드, 오른쪽에 표준 코드', "'SEC_RPT': 'BROKER'", 'nb00 [1b] 상태 = 정상'),
- ('표기 이름만 변경', 'lab_sources.py → SOURCES[코드][\'ko\']',
-  '코드는 그대로 두고 이름만', "SOURCES['BROKER']['ko'] = '리서치'", '모든 표 · 도식 표기가 바뀜'),
- ('쓰지 않는 유형', 'lab_sources.py → enabled',
-  'False 로 두면 점검 · 통계에서 제외 (정의는 남김)', "SOURCES['MEETING']['enabled'] = False", 'nb00 [1b] 사용 열 = X'),
- ('다른 유형에 흡수', 'lab_config.py → DOC_TYPE_MAP',
-  '사내 코드를 흡수할 표준 코드로 매핑', "'MOM': 'EMAIL'  (회의록을 메일로)", 'nb00 [1b] 매핑_결과 확인'),
- ('필수 메타 기준 변경', 'lab_sources.py → required',
-  '유형별 추가 필수 항목 (공통 title · published_at 은 자동)', "SOURCES['NEWS']['required'] = ['org_name', 'src_url']",
-  'nb00 [4] 메타 충족률 표'),
- ('정제 규칙 추가', 'lab_sources.py → clean.noise',
-  '정규식 목록 · email(인용·서명 제거) · repeated(반복 머리글)', "noise=[r'^\\[속보\\]', r'^사진=.*']", 'nb02 노이즈 잔존율'),
- ('청크 크기 변경', 'lab_sources.py → chunk',
-  'size = 목표 글자 수 · table = 표를 별도 청크로', "chunk=dict(size=350, table=True)", 'nb02 길이 분포 · nb06 Recall'),
- ('보안 등급 변경', 'lab_sources.py → security', '0~3 · 권한 필터에 사용', "security=3", 'nb01 · 권한 점검'),
+ ('추가', 'SOURCES 에 항목 한 줄 추가',
+  "'SNS': dict(ko='SNS', alias=['SNS', 'SNS_POST'], group='외부',\n            required=['org_name'], noise=[r'^RT\\s@\\S+'], chunk=280)",
+  'nb00 [1b] 정의 표에 나타남'),
+ ('제거', '그 항목 줄을 지움', "'MEETING': dict(...) 줄 삭제", 'nb00 [1b] 에서 해당 코드가 "정의 없음"'),
+ ('이름 변경', "ko 값을 고침", "SOURCES['BROKER']['ko'] = '리서치'", '모든 표 · 도식 표기가 바뀜'),
+ ('사내 DB 값 대응', "alias 목록에 넣고 뺌", "SOURCES['NEWS']['alias'] = ['NEWS', '뉴스', 'NEWS_EN']", 'nb00 [1b] 상태 = 정상'),
+ ('두 코드를 하나로', '한 카테고리의 alias 에 둘 다 적음', "SOURCES['EMAIL']['alias'] = ['EMAIL', 'MOM']", '분포표에서 합쳐져 집계'),
+ ('필수 메타 변경', 'required 목록 수정 (title · published_at 은 공통이라 자동)',
+  "SOURCES['NEWS']['required'] = ['org_name', 'src_url']", 'nb00 [4] 메타 충족률'),
+ ('정제 규칙 추가', 'noise 에 정규식 추가 / strip_email · strip_repeat',
+  "SOURCES['NEWS']['noise'] += [r'^\\[속보\\]', r'^사진=.*']", 'nb02 노이즈 잔존율'),
+ ('청크 기준 변경', 'chunk = 목표 글자 수 · table = 표 분리',
+  "SOURCES['NEWS']['chunk'] = 300", 'nb02 [+] 기준 적용 시 비교'),
+ ('보안 등급', 'security 0~3', "SOURCES['EXEC_REPORT']['security'] = 3", '권한 점검'),
 ]
 last = rows(ws, D6, bold=(1,))
-b = last + 1
 for i, (a, t) in enumerate([
-  ('원칙', '유형 정의(이름 · 필수 메타 · 정제 · 청킹)는 lab_sources.py 한 곳 / 사내 코드 연결은 lab_config.DOC_TYPE_MAP 한 곳. 다른 파일은 고치지 않는다.'),
-  ('반드시 확인', 'nb00 [1b] 셀 — 미정의 코드가 있으면 그 유형은 필수 메타 · 정제 규칙이 적용되지 않은 채 통과한다.'),
-  ('수정 후', 'Spyder 에서 [0] 준비 셀을 다시 실행해야 변경이 반영된다 (importlib.reload 포함).')], b):
+  ('원칙', '카테고리에 관한 모든 것이 SOURCES 한 곳에 있다. lab_config 는 접속 · 테이블 설정만 담당한다.'),
+  ('반드시 확인', 'nb00 [1b] — 정의에 없는 코드는 필수 메타 · 정제 규칙이 적용되지 않은 채 통과한다.'),
+  ('수정 후', 'Spyder 에서 [0] 준비 셀을 다시 실행해야 반영된다.')], last + 1):
     x = ws.cell(i, 1, a); x.font = f(bold=True, color='5C440C'); x.fill = WARN; x.border = BOX; x.alignment = WRAP
     y = ws.cell(i, 2, t); y.font = f(color='5C440C'); y.fill = WARN; y.border = BOX; y.alignment = WRAP
-    ws.merge_cells(start_row=i, start_column=2, end_row=i, end_column=5)
+    ws.merge_cells(start_row=i, start_column=2, end_row=i, end_column=4)
 
 from openpyxl.workbook.properties import CalcProperties      # noqa: E402
 wb.calculation = CalcProperties(fullCalcOnLoad=True)

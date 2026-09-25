@@ -124,20 +124,12 @@ MV = dict(
 )
 
 # ---------------------------------------------------------------------
-# 사내 DOC_TYPE 코드 → 표준 코드 매핑. **왼쪽만 사내 코드로 바꾼다.**
-#   유형 자체(이름 · 필수 메타 · 정제 규칙)는 lab_sources.py 에서 정의한다.
-#   예) 사내 코드가 'SEC_RPT' 면 → 'SEC_RPT': 'BROKER'
-#       회의록을 메일로 흡수하려면 → 'MEETING_MEMO': 'EMAIL'
-#       새 유형(SNS)은 lab_sources.SOURCES 에 먼저 추가한 뒤 여기 매핑
+# 소스 유형은 lab_sources.py 한 곳에서 정의한다 (추가 · 제거 · 이름 변경).
+# 여기서는 그 정의를 읽어 쓰기만 한다 — 고칠 것 없음.
 # ---------------------------------------------------------------------
-DOC_TYPE_MAP = {
-    'NEWS': 'NEWS', 'BROKER': 'BROKER', 'INSTITUTION': 'INSTITUTION',
-    'EMAIL': 'EMAIL', 'MEETING': 'MEETING', 'REPORT': 'REPORT', 'EXEC_REPORT': 'EXEC_REPORT',
-    # 'SNS': 'SNS', 'SEC_RPT': 'BROKER', 'MOM': 'MEETING',
-}
-
-import lab_sources                      # noqa: E402  — 유형 정의 단일 지점
-DOC_TYPE_KO = lab_sources.ko_map()      # 코드 → 한글. 수정은 lab_sources.SOURCES 에서
+import lab_sources                       # noqa: E402
+DOC_TYPE_MAP = lab_sources.type_map()    # 사내 코드 → 유형 코드
+DOC_TYPE_KO = lab_sources.ko_map()       # 유형 코드 → 표기 이름
 
 # 기존 검색 API 요청 · 응답 모양 — 사내 API에 맞춰 바꾼다
 SEARCH_API = dict(
