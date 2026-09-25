@@ -3,7 +3,7 @@
 nb04 · Milvus 점검
 live 모드 전용. sample 모드에서는 어떤 표가 나오는지 모양만 보여 준다.
 
-체크리스트: docs/rag_checklist_rev10.xlsx → [P1_적재공통] S06 벡터DB · [P1_검색] S10 시맨틱 검색
+체크리스트: archive/inside/rag_checklist_rev10.xlsx → [P1_적재공통] S06 벡터DB · [P1_검색] S10 시맨틱 검색
 """
 # %% [0] 준비 — 가장 먼저 실행
 import os, sys, importlib

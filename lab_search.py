@@ -600,6 +600,40 @@ def llm_call(prompt, temperature=0.0):
                        f'(.env 에 LLM_RPM=10 · LLM_RETRY=5 로 낮춰 보거나 잠시 후 재실행)')
 
 
+def extractive_answer(question, results, meta=None, n=6, max_sent=3):
+    """
+    LLM 없이 만드는 답변 — 상위 청크에서 질문과 겹치는 문장을 뽑아 인용 번호를 붙인다.
+    사외 연습용: 답변 지표(충실도 · 인용 · 거절)가 실제로 계산되는 것을 보기 위함.
+    사내에서 LLM 을 붙이면 llm_answer 가 이 자리를 대신한다.
+    """
+    if results is None or not len(results):
+        return '확인된 자료 없음'
+    q_tok = {w for w in re.findall(r'[가-힣A-Za-z0-9]{2,}', str(question))}
+    cand = []
+    for i, r in enumerate(results.head(n).itertuples(), 1):
+        for sent in re.split(r'(?<=[.!?])\s+|\n', str(r.text)):
+            sent = sent.strip()
+            if len(sent) < 15:
+                continue
+            tok = {w for w in re.findall(r'[가-힣A-Za-z0-9]{2,}', sent)}
+            score = len(q_tok & tok) / (len(q_tok) or 1)
+            if score > 0:
+                cand.append((score, i, sent))
+    if not cand:
+        return '확인된 자료 없음'
+    cand.sort(key=lambda x: -x[0])
+    seen, out = set(), []
+    for _, i, sent in cand:
+        key = sent[:30]
+        if key in seen:
+            continue
+        seen.add(key)
+        out.append(f'{sent} [{i}]')
+        if len(out) >= max_sent:
+            break
+    return ' '.join(out)
+
+
 def llm_answer(question, results, meta=None, n=6, temperature=0.0):
     ctx = build_context(results, meta, n)
     if not C.LLM_URL or (C.IS_SAMPLE and not C.SAMPLE_MODELS):

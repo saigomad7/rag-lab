@@ -3,7 +3,7 @@
 nb03 · BM25 한국어 토크나이저 점검
 "하이닉스의 / 하이닉스는" 이 같은 토큰으로 색인되는지, 토크나이저를 바꾸면 검색이 얼마나 달라지는지.
 
-체크리스트: docs/rag_checklist_rev10.xlsx → [P1_검색] S09 BM25
+체크리스트: archive/inside/rag_checklist_rev10.xlsx → [P1_검색] S09 BM25
 """
 # %% [0] 준비 — 가장 먼저 실행
 import os, sys, importlib

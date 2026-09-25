@@ -5,7 +5,7 @@ nb05 · 스모크 테스트 20문항
 2) 사람이 엑셀의 판정 칸(검색판정 · 답변판정 · 실패유형)을 채운다
 3) 채운 파일을 읽어 실패 유형을 집계한다
 
-체크리스트: docs/rag_checklist_rev10.xlsx → [P1_검색] S07 질의 입력 · [스모크20] 시트
+체크리스트: archive/inside/rag_checklist_rev10.xlsx → [P1_검색] S07 질의 입력 · [스모크20] 시트
 """
 # %% [0] 준비 — 가장 먼저 실행
 import os, sys, importlib

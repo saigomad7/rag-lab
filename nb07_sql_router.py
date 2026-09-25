@@ -4,7 +4,7 @@ nb07 · 정형 데이터 연계 (Phase 3)
   카탈로그 로드 → 질의 라우팅 → SQL 생성 → 정적 검증(실행 전 차단) → 드라이런 → 실행 → 결합 → 평가(EX)
 sample 모드에서는 SQLite 샘플 정형 DB로 SQL 이 실제로 돈다.
 
-체크리스트: docs/rag_checklist_rev10.xlsx → [P3_정형연계] S22~S29 · [정형연계_패턴]
+체크리스트: archive/inside/rag_checklist_rev10.xlsx → [P3_정형연계] S22~S29 · [정형연계_패턴]
 """
 # %% [0] 준비 — 가장 먼저 실행
 import os, sys, importlib

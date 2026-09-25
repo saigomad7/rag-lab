@@ -5,7 +5,7 @@ nb12 · LLM 기반 골든셋 생성 — 적재된 코퍼스에서 질의 · 응�
   [6] 검수 시트 저장 → 사람 검수 → [7] 확정 골든셋
   Variable Explorer 확인 대상: sampled · gen · chk · gold · review · mix
 
-기입 엑셀: archive/golden_eval_pack_rev4.xlsx → [1b_LLM골든셋_검수]
+기입 엑셀: archive/inside/golden_eval_pack_rev4.xlsx → [1b_LLM골든셋_검수]
 """
 # %% [0] 준비 — 가장 먼저 실행
 import os, sys, importlib

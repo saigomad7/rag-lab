@@ -18,7 +18,7 @@ from openpyxl.utils import get_column_letter as L
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 LAB = os.path.abspath(os.path.join(HERE, '..', '..'))
-OUT = os.path.join(LAB, 'docs', 'rag_file_index_rev1.xlsx')
+OUT = os.path.join(LAB, 'archive', 'inside', 'rag_file_index_rev1.xlsx')
 
 FONT, PRI = '맑은 고딕', '185463'
 thin = Side(style='thin', color='BFCACB')

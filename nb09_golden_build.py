@@ -4,7 +4,7 @@ nb09 · 골든셋 구성 → 정량 평가
   [1] 자동 평가셋 생성 → [2] 검수 시트 내보내기 → (엑셀에서 검수) → [3] 골든셋 확정
   [4] 골든셋으로 측정 → [5] 실행 기록 행 생성 → [6] 문항별 결과 내보내기
 
-기입 엑셀: archive/golden_eval_pack_rev4.xlsx → [1] [2] [3] 시트
+기입 엑셀: archive/inside/golden_eval_pack_rev4.xlsx → [1] [2] [3] 시트
 """
 # %% [0] 준비 — 가장 먼저 실행
 import os, sys, importlib

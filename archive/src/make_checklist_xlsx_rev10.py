@@ -17,7 +17,7 @@ from columns_data import (COMMON_DOC, COMMON_BODY, COMMON_CHUNK, PER_SOURCE, NOT
 P3S = [(c, n, [(re.sub(r'</?b>', '', a), b, re.sub(r'</?b>', '', cc), d, e2) for a, b, cc, d, e2 in items]) for c, n, items in P3]
 
 import os as _os
-OUT = _os.path.join(_os.path.dirname(_os.path.abspath(__file__)), '..', '..', 'docs', 'rag_checklist_rev10.xlsx')
+OUT = _os.path.join(_os.path.dirname(_os.path.abspath(__file__)), '..', 'inside', 'rag_checklist_rev10.xlsx')
 FONT = '맑은 고딕'
 ST = {'done': '완료', 'doing': '확인중', 'todo': '미확인'}
 strip = lambda s: re.sub(r'<[^>]+>', '', s).replace('&gt;', '>')

@@ -5,7 +5,7 @@ nb08 · 골든셋 없이 정량 평가 — 사내 DB 만으로 평가셋 자동 
   [4] L2 합성 QA (사내 LLM 질문 생성 + 자동 필터)   [5] 측정   [6] 기준 대비 판정   [7] 저장
 사람 라벨 0건으로 시작 → 실패 문항만 눈으로 확인 → 그 문항이 곧 수동 골든셋 후보
 
-체크리스트: docs/rag_checklist_rev10.xlsx → [P1_검색] S15 평가
+체크리스트: archive/inside/rag_checklist_rev10.xlsx → [P1_검색] S15 평가
 """
 # %% [0] 준비 — 가장 먼저 실행
 import os, sys, importlib

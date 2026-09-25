@@ -5,7 +5,7 @@ nb11 · 질문 ↔ 근거 문서 연결 — 질문 은행을 골든셋으로 바
   [1] 질문 은행 적재 → [2] 코퍼스에서 근거 후보 검색 → [3] 사람이 근거 확정(엑셀)
   [4] 확정분 → 골든셋 생성 · 근거 확보율 산출 → [5] 미확보 = 수집 공백 목록
 
-기입 엑셀: archive/golden_eval_pack_rev4.xlsx → [2d_근거문서_연결] [2e_원본_수집목록]
+기입 엑셀: archive/inside/golden_eval_pack_rev4.xlsx → [2d_근거문서_연결] [2e_원본_수집목록]
 """
 # %% [0] 준비 — 가장 먼저 실행
 import os, sys, importlib

@@ -59,7 +59,8 @@ def evaluate(search_fn, golden, modes, k=10, th=0.5, verbose=True):
     for mode in modes:
         for g in golden.itertuples():
             res = search_fn(g.question, mode, k)
-            base = dict(mode=mode, qid=g.qid, q_type=g.q_type, source=g.source, question=g.question,
+            base = dict(mode=mode, qid=g.qid, q_type=getattr(g, 'q_type', ''), source=getattr(g, 'source', ''),
+                    question=g.question,
                         top1_doc=res['doc_id'].iloc[0] if len(res) else None,
                         top1_text=(res['text'].iloc[0][:80] if len(res) else ''))
             if not str(g.gold_doc_ids or '').strip():

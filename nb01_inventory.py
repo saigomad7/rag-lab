@@ -3,7 +3,7 @@
 nb01 · 소스 인벤토리
 Spyder: 셀마다 Ctrl+Enter (다음 셀로 이동은 Shift+Enter). 결과는 Variable Explorer 에서 확인.
 
-체크리스트: docs/rag_checklist_rev10.xlsx → [P1_적재공통] S01 수집 · S05 메타데이터
+체크리스트: archive/inside/rag_checklist_rev10.xlsx → [P1_적재공통] S01 수집 · S05 메타데이터
 """
 # %% [0] 준비 — 가장 먼저 실행
 import os, sys, importlib

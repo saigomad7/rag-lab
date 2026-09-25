@@ -50,6 +50,8 @@ footer{padding:26px 0 0;font-family:var(--mono);font-size:11px;color:var(--mut);
 <h1>밖에서 먼저 돌려보기</h1>
 <p class="lede">LLM 없이, 고정된 샘플 데이터와 고정된 정답지로 이 코드가 어떻게 도는지 확인합니다.
 설정할 것 없고 키도 필요 없습니다. 압축 풀고 바로 실행하면 됩니다.</p>
+<div class="box"><p><b>같이 쓰는 것</b> — <code>docs/practice_checklist.xlsx</code> 를 열어 놓고
+하나씩 확인할 때마다 체크하십시오. 23항목이고 진행률이 자동으로 계산됩니다.</p></div>
 <div class="box"><p><b>목적</b> — 성능을 측정하는 게 아니라 <b>구조를 이해하는 것</b>입니다.
 값을 하나씩 바꿔 보며 "무엇을 건드리면 점수가 어떻게 움직이는지"를 손에 익힌 뒤, 그 감각을 사내 DB로 가져갑니다.</p></div>
 </header>
@@ -89,15 +91,17 @@ footer{padding:26px 0 0;font-family:var(--mono);font-size:11px;color:var(--mut);
 <tr><td class="k">2</td><td><code>nb02_parse_chunk</code></td><td>문서가 청크로 어떻게 쪼개지나</td><td>정제 전후 비교 · 청크 길이 분포</td></tr>
 <tr><td class="k">3</td><td><code>nb00_pipeline_check</code></td><td>적재 문제를 잡아내는가</td><td><b>미달 3건</b>이 뜨면 정상</td></tr>
 <tr><td class="k">4</td><td><code>nb03_bm25_tokenizer</code></td><td>한국어 조사 처리가 검색에 미치는 영향</td><td>space / josa / kiwi 점수 차이</td></tr>
-<tr><td class="k">5</td><td><code>nb06_retrieval_eval</code></td><td><b>핵심</b> — 검색 방식 6종 점수 비교</td><td>BM25 · 하이브리드 · 리랭크 · MMR</td></tr>
+<tr><td class="k">5</td><td><code>nb06_retrieval_eval</code></td><td><b>검색 지표</b> — 방식 6종 점수 비교</td><td>BM25 · 하이브리드 · 리랭크 · MMR</td></tr>
+<tr><td class="k">6</td><td><code>nb10_answer_eval</code></td><td><b>답변 지표</b> — 충실도 · 정확도 · 인용 · 거절</td><td>모범답변(상한) vs 추출식</td></tr>
 </table></div>
-<div class="warn">나머지 노트북(<code>nb10</code> · <code>nb12</code> · <code>nb13</code>)은 <b>LLM이 필요해서 밖에서는 의미가 없습니다.</b>
-사내에서 LLM을 붙인 뒤에 돌리십시오.</div>
+<div class="warn"><code>nb12</code>(골든셋 생성) · <code>nb13</code>(프리셋 비교)는 <b>LLM이 필요합니다.</b>
+사내에서 LLM을 붙인 뒤에 돌리십시오. 나머지 6개는 키 없이 전부 돕니다.</div>
 </section>
 
 <section>
 <h2><span class="n">4</span>결과 읽는 법</h2>
-<p class="sub"><code>nb06</code>이 내놓는 표가 이 연습의 결론입니다.</p>
+<h3>검색 지표 — nb06</h3>
+<p class="sub">질문을 넣었을 때 정답 문서를 찾아오는가.</p>
 <pre>mode                 hit@1   hit@5   recall@5    mrr
 bm25                 0.667   0.889      0.870   0.760
 dense                0.296   0.704      0.685   0.532
@@ -111,6 +115,22 @@ hybrid+rerank+mmr    0.630   0.852      0.852   0.750</pre>
 <tr><td class="k">recall@5</td><td>정답 문서를 몇 %나 회수했나</td><td>정답이 여러 개인 문항에서 의미</td></tr>
 <tr><td class="k">mrr</td><td>정답이 몇 번째로 나왔나</td><td>0.76 → 평균 1.3번째. 1.0이면 항상 1위</td></tr>
 </table></div>
+<h3>답변 지표 — nb10</h3>
+<p class="sub">LLM 없이도 계산됩니다. 답변을 만드는 <b>방식 두 가지를 나란히</b> 놓고 봅니다.</p>
+<pre>방식      충실도   적합도   정확도   인용   거절
+<b>모범답변</b>   1.000   0.204   0.900  1.000  1.000   ← 정답 문장을 그대로 답변으로 (상한선)
+<b>추출식</b>    1.000   0.487   0.467  1.000  0.933   ← 검색 결과에서 문장을 뽑아 인용</pre>
+<div class="tw"><table>
+<tr><th>지표</th><th>묻는 것</th><th>읽는 법</th></tr>
+<tr><td class="k">충실도</td><td>근거 안에 있는 내용만 말했나</td><td>1.0 = 지어낸 문장 없음. 추출식은 원문을 그대로 쓰니 당연히 1.0</td></tr>
+<tr><td class="k">정확도</td><td>정답 내용을 담았나</td><td><b>0.467</b> — 정답 문장을 반만 건져 옴. 여기가 개선 여지</td></tr>
+<tr><td class="k">인용</td><td>출처 번호가 실제 근거를 가리키나</td><td>1.0 = 인용 규칙이 지켜짐</td></tr>
+<tr><td class="k">거절</td><td>자료 없을 때 "없다"고 했나</td><td>0.933 — 답없음 3문항 중 1개에서 억지로 답함</td></tr>
+</table></div>
+<div class="ok"><b>이 표를 읽는 법</b> — 모범답변은 <b>지표가 제대로 계산되는지 확인하는 기준선</b>입니다(정답을 넣었으니 높게 나와야 정상).
+추출식이 그에 얼마나 근접하느냐가 <b>지금 검색이 답변 재료를 얼마나 잘 골라 오는가</b>입니다.
+사내에서 LLM을 붙이면 세 번째 줄(LLM)이 추가되어 셋을 비교하게 됩니다.</div>
+
 <div class="note"><b>샘플 모드의 <code>dense</code>는 낮게 나오는 게 정상입니다.</b>
 진짜 임베딩 모델 대신 해시로 흉내 낸 것이라 그렇습니다. 사내에서 BGE-M3를 붙이면 이 값이 올라갑니다.
 <b>BM25 계열 숫자는 진짜</b>이므로 그쪽을 보십시오.</div>
