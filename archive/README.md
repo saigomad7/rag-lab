@@ -30,4 +30,5 @@
 python make_run_guide.py          → docs/rag_run_guide_rev1.xlsx
 python make_checklist_xlsx_rev10.py → docs/rag_checklist_rev10.xlsx
 python make_project_log.py        → archive/rag_project_log_rev1.xlsx
+python make_file_index.py         → docs/rag_file_index_rev1.xlsx   (코드 바뀌면 다시 실행)
 ```
