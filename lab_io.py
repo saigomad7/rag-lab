@@ -65,7 +65,7 @@ def _std_types(df):
 def load_raw(n=None, where=None, sample_pct=None):
     """원문 문서. n: 최대 행 수, where: SQL 조건(예: "DOC_TYPE='EMAIL'"), sample_pct: 테이블 표본 %."""
     if C.IS_SAMPLE:
-        df = sample_mod().raw_docs()
+        df = _std_types(sample_mod().raw_docs())      # 샘플도 live 와 같은 변환(별칭 매핑)을 거친다
         return df.head(n) if n else df
     return _std_types(read_sql(_select(C.RAW, n, where, sample_pct)))
 
