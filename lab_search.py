@@ -151,6 +151,22 @@ def _hash_vec(text, dim=256):
     return v / n if n else v
 
 
+def _api_hint(what, url, model, r):
+    """API 호출 실패 시 원인과 조치를 한 번에 보여 준다."""
+    tip = {
+        400: '요청 형식 · 모델 이름 확인',
+        401: 'API 키가 없거나 잘못됨 — .env 의 LLM_API_KEY (또는 EMBED_API_KEY) 확인',
+        403: '키 권한 · 지역 제한 확인',
+        404: '주소가 틀림 — 끝까지 적었는지 확인 (예: .../v1/embeddings, .../v1beta/openai/embeddings)',
+        429: '호출 한도 초과 — 잠시 후 재시도',
+    }.get(r.status_code, '응답 본문을 확인')
+    body = (r.text or '')[:300].replace('\n', ' ')
+    return (f'{what} API 실패 [{r.status_code}] {tip}\n'
+            f'  URL   : {url}\n'
+            f'  모델   : {model}\n'
+            f'  응답   : {body}')
+
+
 class Embedder:
     """encode(texts) → {'dense': (n, d) 정규화 행렬, 'sparse': [ {token_id: weight}, ... ] 또는 None}"""
 
@@ -179,11 +195,14 @@ class Embedder:
             return {'dense': dense, 'sparse': sparse}
         if self.mode == 'api':
             import requests
+            hdr = {'Authorization': f'Bearer {C.EMBED_API_KEY}'} if C.EMBED_API_KEY not in ('', 'none') else {}
             vecs = []
             for i in range(0, len(texts), batch_size):
-                r = requests.post(C.EMBED_URL, json={'model': C.EMBED_MODEL, 'input': texts[i:i + batch_size]},
+                r = requests.post(C.EMBED_URL, headers=hdr,
+                                  json={'model': C.EMBED_MODEL, 'input': texts[i:i + batch_size]},
                                   timeout=C.HTTP_TIMEOUT, verify=C.VERIFY_SSL)
-                r.raise_for_status()
+                if r.status_code >= 400:
+                    raise RuntimeError(_api_hint('임베딩', C.EMBED_URL, C.EMBED_MODEL, r))
                 vecs += [d['embedding'] for d in r.json()['data']]
             d = np.asarray(vecs, dtype=np.float32)
             return {'dense': d / np.linalg.norm(d, axis=1, keepdims=True), 'sparse': None}
@@ -229,9 +248,12 @@ class Reranker:
             return list(s) if isinstance(s, (list, tuple)) else [s]
         if self.mode == 'api':
             import requests
-            r = requests.post(C.RERANK_URL, json={'query': query, 'documents': texts, 'texts': texts},
+            hdr = {'Authorization': f'Bearer {C.RERANK_API_KEY}'} if C.RERANK_API_KEY not in ('', 'none') else {}
+            r = requests.post(C.RERANK_URL, headers=hdr,
+                              json={'query': query, 'documents': texts, 'texts': texts},
                               timeout=C.HTTP_TIMEOUT, verify=C.VERIFY_SSL)
-            r.raise_for_status()
+            if r.status_code >= 400:
+                raise RuntimeError(_api_hint('리랭커', C.RERANK_URL, '', r))
             js = r.json()
             items = js.get('results', js) if isinstance(js, dict) else js
             out = [0.0] * len(texts)

@@ -71,9 +71,28 @@ RERANK_MODE = env('RERANK_MODE', 'sample')     # local | api | none | sample
 RERANK_PATH = env('RERANK_PATH', '')
 RERANK_URL = env('RERANK_URL', '')
 
+def _endpoint(url, tail):
+    """
+    엔드포인트 끝 경로를 맞춘다 — 베이스 URL 만 적어도 동작하게.
+      https://api.openai.com/v1                     → .../v1/embeddings
+      https://generativelanguage.googleapis.com/v1beta/openai/  → .../openai/embeddings
+    """
+    if not url:
+        return url
+    u = url.rstrip('/')
+    return u if u.endswith(tail) else f'{u}/{tail}'
+
+
+EMBED_URL = _endpoint(EMBED_URL, 'embeddings')
+EMBED_API_KEY = env('EMBED_API_KEY', '')       # 비우면 LLM_API_KEY 를 쓴다
+
 LLM_URL = env('LLM_URL', '')                   # .../v1/chat/completions (OpenAI 호환)
 LLM_MODEL = env('LLM_MODEL', '')
 LLM_API_KEY = env('LLM_API_KEY', 'none')
+LLM_URL = _endpoint(LLM_URL, 'chat/completions')
+if not EMBED_API_KEY:
+    EMBED_API_KEY = LLM_API_KEY
+RERANK_API_KEY = env('RERANK_API_KEY', '') or LLM_API_KEY
 
 # 기존 사내 검색 API (스모크 테스트 · 평가를 "지금 시스템 그대로" 돌릴 때)
 SEARCH_API_URL = env('SEARCH_API_URL', '')
@@ -159,6 +178,6 @@ def summary():
         'LAB_MODE': LAB_MODE + (' + 실제 모델' if (IS_SAMPLE and SAMPLE_MODELS) else ''), 'SAMPLE_SET': SAMPLE_SET, 'ORA_DSN': ORA_DSN or '비어 있음', 'ORA_USER': mask(ORA_USER),
         'MILVUS_URI': MILVUS_URI, 'MILVUS_COLLECTION': MILVUS_COLLECTION,
         'EMBED_MODE': EMBED_MODE, 'EMBED_MAX_LENGTH': EMBED_MAX_LENGTH, 'RERANK_MODE': RERANK_MODE,
-        'LLM_URL': mask(LLM_URL), 'USE_LLM': USE_LLM, 'SEARCH_API_URL': mask(SEARCH_API_URL),
+        'EMBED_URL': EMBED_URL or '비어 있음', 'LLM_URL': LLM_URL or '비어 있음', 'USE_LLM': USE_LLM, 'SEARCH_API_URL': mask(SEARCH_API_URL),
         'RAW_TABLE': RAW['table'], 'CHUNK_TABLE': CHUNK['table'], 'OUT_DIR': OUT_DIR,
     }
