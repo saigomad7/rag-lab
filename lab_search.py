@@ -170,6 +170,42 @@ def _api_hint(what, url, model, r):
             f'  응답   : {body}')
 
 
+def list_models(kind='embed'):
+    """
+    지금 키로 쓸 수 있는 모델 이름을 조회한다 — 모델 404 가 날 때 확인용.
+      lab_search.list_models()          → 임베딩 모델
+      lab_search.list_models('chat')    → 대화 모델
+    구글(generativelanguage) · OpenAI 호환 서버 모두 지원.
+    """
+    import requests
+    import pandas as _pd
+    url = C.EMBED_URL or C.LLM_URL
+    key = C.EMBED_API_KEY if C.EMBED_API_KEY not in ('', 'none') else C.LLM_API_KEY
+    if not url:
+        return _pd.DataFrame([{'안내': '.env 에 EMBED_URL 또는 LLM_URL 을 먼저 넣으세요'}])
+    if 'generativelanguage.googleapis.com' in url:              # 구글 네이티브 목록 API
+        r = requests.get('https://generativelanguage.googleapis.com/v1beta/models',
+                         params={'key': key}, timeout=C.HTTP_TIMEOUT, verify=C.VERIFY_SSL)
+        if r.status_code >= 400:
+            return _pd.DataFrame([{'실패': r.status_code, '응답': (r.text or '')[:200]}])
+        rows = []
+        for m in r.json().get('models', []):
+            meth = ','.join(m.get('supportedGenerationMethods', []))
+            ok = ('embedContent' in meth) if kind == 'embed' else ('generateContent' in meth)
+            if ok:
+                rows.append(dict(모델=m['name'].replace('models/', ''), 지원=meth,
+                                 설명=str(m.get('description', ''))[:60]))
+        return _pd.DataFrame(rows)
+    base = url.rsplit('/', 1)[0]                                 # OpenAI 호환 /v1/models
+    r = requests.get(base.rsplit('/embeddings', 1)[0] + '/models',
+                     headers={'Authorization': f'Bearer {key}'}, timeout=C.HTTP_TIMEOUT, verify=C.VERIFY_SSL)
+    if r.status_code >= 400:
+        return _pd.DataFrame([{'실패': r.status_code, '응답': (r.text or '')[:200]}])
+    ids = [d.get('id', '') for d in r.json().get('data', [])]
+    key_w = 'embed' if kind == 'embed' else ''
+    return _pd.DataFrame([{'모델': i} for i in ids if key_w in i.lower()])
+
+
 class Embedder:
     """encode(texts) → {'dense': (n, d) 정규화 행렬, 'sparse': [ {token_id: weight}, ... ] 또는 None}"""
 
