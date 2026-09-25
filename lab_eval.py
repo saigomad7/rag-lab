@@ -39,7 +39,8 @@ def metrics(rel, results, gold_doc_ids, ks=(1, 3, 5, 10)):
     for k in ks:
         top = rel[:k]
         out[f'hit@{k}'] = int(any(top))
-        found = {str(d) for d, v in zip(results['doc_id'].head(k), top) if v}
+        ids = results['doc_id'].head(k) if 'doc_id' in getattr(results, 'columns', []) else []
+        found = {str(d) for d, v in zip(ids, top) if v}
         out[f'recall@{k}'] = len(found) / len(gold) if gold else np.nan
         dcg = sum(v / math.log2(i + 2) for i, v in enumerate(top))
         ideal = sum(1 / math.log2(i + 2) for i in range(min(k, max(1, len(gold)))))

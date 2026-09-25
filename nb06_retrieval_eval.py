@@ -44,7 +44,7 @@ print('코퍼스', len(corpus), '청크 · 검색기', PARTS, '· BM25 토크나
 
 # %% [3] 단계별 비교 — 같은 골든셋, 같은 지표
 MODES = ['bm25', 'dense', 'sparse', 'hybrid', 'hybrid+rerank', 'hybrid+rerank+mmr']
-MODES = [m for m in MODES if m not in ('bm25', 'dense', 'sparse') or m in PARTS]
+MODES = [m for m in MODES if m not in ('bm25', 'dense', 'sparse') or m in ret.parts]   # 쓸 수 없는 검색기는 자동 제외
 search_fn = lambda q, mode, k: ret.search(q, mode, k=k, cand=50, lam=0.7)
 detail, summary = lab_eval.evaluate(search_fn, golden, MODES, k=10)
 print(summary.to_string())

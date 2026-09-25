@@ -299,7 +299,7 @@ class Embedder:
             keys = [hashlib.md5(t.encode('utf-8', 'ignore')).hexdigest() for t in texts]
             todo = [i for i, k in enumerate(keys) if k not in cache]
             bs = min(batch_size, C.EMBED_BATCH)
-            if todo:
+            if len(todo) > 2:                       # 질의 1~2건은 조용히 처리
                 print(f'  임베딩 호출 {len(todo)} 건 (캐시 {len(texts) - len(todo)} 건 재사용) · 배치 {bs}')
             for s0 in range(0, len(todo), bs):
                 idx = todo[s0:s0 + bs]
@@ -433,9 +433,21 @@ class Retriever:
         self.bm = None
         if self.chunks is not None and 'bm25' in self.parts:
             self.bm = BM25(get_tokenizer(bm25_tokenizer)).fit(self.chunks['text'].tolist())
+        self.D = self.S = None
         if not self.use_milvus and self.chunks is not None:
             enc = self.emb.encode(self.chunks['text'].tolist())
             self.D, self.S = enc['dense'], enc['sparse']
+            if self.S is None and 'sparse' in self.parts:      # api 임베딩은 sparse 미지원
+                self.parts = [p for p in self.parts if p != 'sparse']
+                print("  ! 이 임베딩(api)은 sparse 벡터를 주지 않습니다 → parts 에서 'sparse' 제외"
+                      " (BM25 가 그 역할을 대신합니다)")
+
+    COLS = ['chunk_id', 'doc_id', 'text', 'score', 'via']
+
+    @classmethod
+    def empty(cls):
+        """결과 없음 — 컬럼은 유지한다 (하위 코드가 doc_id 를 찾으므로)"""
+        return pd.DataFrame(columns=cls.COLS)
 
     # --- 단독 검색기 ---
     def _local(self, pairs, via):
@@ -443,7 +455,7 @@ class Retriever:
         return pd.DataFrame(rows, columns=['chunk_id', 'doc_id', 'text', 'score', 'via'])
 
     def bm25(self, q, k=50):
-        return self._local(self.bm.search(q, k), 'bm25') if self.bm else pd.DataFrame()
+        return self._local(self.bm.search(q, k), 'bm25') if self.bm else self.empty()
 
     def dense(self, q, k=50, expr=''):
         v = self.emb.encode([q])['dense'][0]
@@ -455,8 +467,8 @@ class Retriever:
 
     def sparse(self, q, k=50, expr=''):
         sp = self.emb.encode([q])['sparse']
-        if sp is None:
-            return pd.DataFrame()
+        if sp is None or self.S is None:            # api 임베딩은 sparse 를 주지 않는다
+            return self.empty()
         if self.mv and C.MV['sparse']:
             return self.mv.sparse(sp[0], k, expr)
         s = np.array([sparse_dot(sp[0], d) for d in self.S])
@@ -467,9 +479,12 @@ class Retriever:
     def search(self, q, mode='hybrid+rerank+mmr', k=10, cand=50, lam=0.7, max_per_doc=3, expr='', rrf_k=60):
         if mode in ('bm25', 'dense', 'sparse'):
             fn = {'bm25': lambda: self.bm25(q, cand), 'dense': lambda: self.dense(q, cand, expr), 'sparse': lambda: self.sparse(q, cand, expr)}[mode]
-            return self._rank(fn().head(k))
+            r = fn()
+            return self._rank(r.head(k)) if len(r) else self.empty()
         lists = {p: getattr(self, p)(q, cand) if p == 'bm25' else getattr(self, p)(q, cand, expr) for p in self.parts}
         lists = {p: d for p, d in lists.items() if d is not None and len(d)}
+        if not lists:
+            return self.empty()
         pool = pd.concat(lists.values(), ignore_index=True).drop_duplicates('chunk_id').set_index('chunk_id')
         fused = rrf([d['chunk_id'].tolist() for d in lists.values()], k=rrf_k)[:cand]
         res = pool.loc[[i for i, _ in fused]].reset_index()
