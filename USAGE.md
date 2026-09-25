@@ -27,6 +27,26 @@ B 는 `.env.example` 하단의 `[개인 노트북 학습용]` 주석 블록을 �
 
 ---
 
+## 0-0. 사내 컬럼이 더 많을 때
+
+`lab_config.py` 의 `RAW` · `CHUNK` 에 **줄을 추가**하면 됩니다. 개수 제한 없습니다.
+
+```python
+RAW = dict(
+    table='MKT_DOC', doc_id='DOCU_NO', ...,
+    approval_status='APRV_STS',    # ← 사내에만 있는 컬럼 추가
+    version='VER_NO',
+    last_updated_at='UPD_DT',      # 끝이 _at · _dt · _date 면 날짜로 자동 변환
+)
+```
+
+- 추가한 컬럼은 `raw` 데이터프레임에 그대로 실려 옵니다 (Variable Explorer 에서 확인)
+- **점검 대상으로 쓰려면** `lab_sources.py` 의 해당 유형 `required` 에 이름을 넣으십시오 → nb00 메타 충족률에 나타납니다
+- 왼쪽 이름은 영문 소문자 · 밑줄 권장 (Oracle alias · DataFrame 컬럼명으로 쓰임)
+- 왼쪽의 기존 12개 표준 이름은 바꾸지 마십시오 (코드가 그 이름을 찾습니다)
+
+---
+
 ## 0-1. 소스 카테고리 바꾸기
 
 `lab_sources.py` 의 **`SOURCES` 딕셔너리 한 곳**만 고칩니다. 한 줄이 한 카테고리입니다.

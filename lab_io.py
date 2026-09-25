@@ -56,8 +56,9 @@ def _std_types(df):
     if 'doc_type' in df:
         df['doc_type_raw'] = df['doc_type']
         df['doc_type'] = df['doc_type'].map(lambda x: C.DOC_TYPE_MAP.get(str(x), str(x)))
-    for c in ('published_at', 'collected_at'):
-        if c in df:
+    # 날짜 컬럼 자동 변환 — 사내에서 추가한 날짜 항목(_at · _dt · _date)도 함께
+    for c in df.columns:
+        if c in ('published_at', 'collected_at') or str(c).lower().endswith(('_at', '_dt', '_date')):
             df[c] = pd.to_datetime(df[c], errors='coerce')
     return df
 
