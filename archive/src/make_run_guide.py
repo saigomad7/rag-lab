@@ -15,7 +15,7 @@ from openpyxl.utils import get_column_letter as L
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 LAB = os.path.abspath(os.path.join(HERE, '..', '..'))
-OUT = os.path.join(HERE, '..', 'rag_run_guide_rev1.xlsx')
+OUT = os.path.join(HERE, '..', '..', 'docs', 'rag_run_guide_rev1.xlsx')
 
 FONT, PRI = '맑은 고딕', '185463'
 thin = Side(style='thin', color='BFCACB')
@@ -175,37 +175,37 @@ for i, (a, t) in enumerate(msg, m):
 
 # ================= 3. 노트북 상세 =================
 ws = wb.create_sheet('3_노트북_상세')
-cols = ['파일', '한 줄 목적', '구분', '셀', '입력(무엇을 읽나)', '출력(무엇이 나오나)', '주요 확인 변수', '기록 위치']
-head(ws, '3. 노트북 14개 상세', '구분 — 핵심: 반드시 / 선택: 필요할 때 / 참고: 이해용', cols,
-     [24, 40, 8, 6, 30, 40, 26, 30])
+cols = ['파일', '한 줄 목적', '구분', '셀', '체크리스트 위치', '출력(무엇이 나오나)', '주요 확인 변수', '기록 위치']
+head(ws, '3. 노트북 14개 상세', '구분 — 핵심: 반드시 / 선택: 필요할 때 / 참고: 이해용 · 체크리스트 = docs/rag_checklist_rev10.xlsx', cols,
+     [24, 38, 8, 6, 38, 38, 24, 30])
 D3 = [
- ('nb00_pipeline_check', '적재 · 메타 · 청킹 · 인덱싱 무결성 점검', '핵심', CELLS.get('nb00'), '문서 · 청크 테이블',
+ ('nb00_pipeline_check', '적재 · 메타 · 청킹 · 인덱싱 무결성 점검', '핵심', CELLS.get('nb00'), '[단계별_실행도구] S00 · [P1_적재공통]',
   '단계별 점검표 · 미달 항목 목록 · 소스별 분포', 'rep · fail · dist', '이력대장 3_파이프라인점검'),
- ('nb01_inventory', '적재 현황 조사 — 소스별 분포 · 기간', '선택', CELLS.get('nb01'), '문서 테이블',
+ ('nb01_inventory', '적재 현황 조사 — 소스별 분포 · 기간', '선택', CELLS.get('nb01'), '[P1_적재공통] S01 · S05',
   '소스별 건수 · 기간 · 메타 채움률 · 중복', 'inv · dup', '이력대장 3_파이프라인점검'),
- ('nb02_parse_chunk', '파싱 · 청킹 품질 점검', '핵심', CELLS.get('nb02'), '문서 · 청크',
+ ('nb02_parse_chunk', '파싱 · 청킹 품질 점검', '핵심', CELLS.get('nb02'), '[P1_적재공통] S02 · S03 · S04',
   '청크 길이 분포 · 노이즈 잔존 · 표 손상 · 문장 절단', 'prof · issues', '이력대장 3_파이프라인점검'),
- ('nb03_bm25_tokenizer', '한국어 토크나이저 3종 비교', '선택', CELLS.get('nb03'), '청크 · 골든셋',
+ ('nb03_bm25_tokenizer', '한국어 토크나이저 3종 비교', '선택', CELLS.get('nb03'), '[P1_검색] S09',
   '공백 / 조사제거 / Kiwi 별 적중률', 'cmp', '이력대장 5_실험이력'),
- ('nb04_milvus', '인덱스 구성 · 건수 정합성', '선택', CELLS.get('nb04'), 'Milvus · 청크',
+ ('nb04_milvus', '인덱스 구성 · 건수 정합성', '선택', CELLS.get('nb04'), '[P1_적재공통] S06 · [P1_검색] S10',
   '스키마 · 필드 · 건수 비교 · 필터 검색', 'info · cnt', '이력대장 3_파이프라인점검'),
- ('nb05_smoke_test', '실제 질문 20건 체감 점검', '선택', CELLS.get('nb05'), 'golden/smoke20.csv',
+ ('nb05_smoke_test', '실제 질문 20건 체감 점검', '선택', CELLS.get('nb05'), '[P1_검색] S07 · [스모크20]',
   '문항별 검색 결과 · 판정용 엑셀', 'smoke', '평가팩 스모크 시트'),
- ('nb06_retrieval_eval', '검색 지표 측정 — 모드 6종 비교', '핵심', CELLS.get('nb06'), '골든셋 · 청크',
+ ('nb06_retrieval_eval', '검색 지표 측정 — 모드 6종 비교', '핵심', CELLS.get('nb06'), '[P1_검색] S09~S12 · S15',
   'Recall@k · MRR · nDCG 모드별 표 · 유형별 분해', 'summary · detail', '평가팩 3_평가_실행기록'),
- ('nb07_sql_router', '정형 데이터 연계 — 라우팅 · SQL · 검증', '선택', CELLS.get('nb07'), '지표 정의서 · SQL 골든셋',
+ ('nb07_sql_router', '정형 데이터 연계 — 라우팅 · SQL · 검증', '선택', CELLS.get('nb07'), '[P3_정형연계] S22~S29',
   '라우팅 정확도 · 차단 규칙 · 실행 정확도(EX)', 'route · ex', '이력대장 7_지표현황'),
- ('nb08_auto_eval', '라벨 없는 평가셋 자동 생성 · 측정', '선택', CELLS.get('nb08'), '문서 · 청크',
+ ('nb08_auto_eval', '라벨 없는 평가셋 자동 생성 · 측정', '선택', CELLS.get('nb08'), '[P1_검색] S15',
   'known-item · 제목 · 중복쌍 · 합성 QA 및 기준 대비 판정', 'sets · res', '이력대장 5_실험이력'),
- ('nb09_golden_build', '골든셋 구성 → 평가 실행 (엑셀 연계)', '참고', CELLS.get('nb09'), '자동 평가셋',
+ ('nb09_golden_build', '골든셋 구성 → 평가 실행 (엑셀 연계)', '참고', CELLS.get('nb09'), '체크리스트 없음 — 평가팩 엑셀 연계',
   '검수 시트 · 확정 골든셋 · 실행 기록 양식', 'review · runrec', '평가팩 1 · 2 · 3'),
- ('nb10_answer_eval', '답변 품질 측정 — RAGAS 계열 지표', '핵심', CELLS.get('nb10'), '골든셋 · 청크 · LLM',
+ ('nb10_answer_eval', '답변 품질 측정 — RAGAS 계열 지표', '핵심', CELLS.get('nb10'), '[P1_검색] S14 · S15',
   '충실도 · 적합도 · 정확도 · 인용 · 거절 + 합격 판정', 'auto · summary', '이력대장 7_지표현황'),
- ('nb11_evidence_link', '질문에 근거 문서 연결 · 수집 공백 분리', '선택', CELLS.get('nb11'), '사외 60문항 · 청크',
+ ('nb11_evidence_link', '질문에 근거 문서 연결 · 수집 공백 분리', '선택', CELLS.get('nb11'), '체크리스트 없음 — 평가팩 2d · 2e',
   '질문별 근거 후보 · 판정 시트 · 수집 공백 목록', 'linked · gap', '평가팩 2d · 2e'),
- ('nb12_golden_llm', 'LLM 으로 골든셋 생성 · 자가검증 · 검수', '핵심', CELLS.get('nb12'), '청크 · LLM',
+ ('nb12_golden_llm', 'LLM 으로 골든셋 생성 · 자가검증 · 검수', '핵심', CELLS.get('nb12'), '[P1_검색] S15',
   '질문 · 정답 · 근거 + 자가검증 6항목 + 검수 시트', 'gen · chk · gold', '평가팩 1b_LLM골든셋_검수'),
- ('nb13_langgraph_rag', '노드 구성별 비교 — 개선 정량화', '핵심', CELLS.get('nb13'), '골든셋 · 청크 · LLM',
+ ('nb13_langgraph_rag', '노드 구성별 비교 — 개선 정량화', '핵심', CELLS.get('nb13'), '[P1_검색] S08 · S11 · S12 · S14',
   '프리셋 v0~v6 지표 비교 · 증감 · 퇴행 문항', 'summ · dlt · detail', '이력대장 5 · 6'),
 ]
 last = rows(ws, D3, cen=(3, 4), bold=(1,))

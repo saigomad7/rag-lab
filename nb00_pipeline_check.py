@@ -3,6 +3,8 @@
 nb00 · 데이터 파이프라인 적재 검증 — 평가 이전에 먼저 통과해야 하는 단계
   수집 → 통합 테이블 → 메타 → 청킹 테이블(doc_id 연결) → 임베딩 → Milvus 인덱싱
   각 셀은 DataFrame 을 남긴다 (Variable Explorer 확인 대상: raw · chunks · rep · fail)
+
+체크리스트: docs/rag_checklist_rev10.xlsx → [단계별_실행도구] S00 · [P1_적재공통] 전체
 """
 # %% [0] 준비 — 가장 먼저 실행
 import os, sys, importlib

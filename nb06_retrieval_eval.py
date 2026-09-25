@@ -1,7 +1,9 @@
 # -*- coding: utf-8 -*-
 """
-nb06 · 검색 평가 · 단계별 비교(ablation) — 체크리스트 S15 · S09-4 · S11 (RRF · MMR) · S12 (리랭크)
+nb06 · 검색 평가 · 단계별 비교(ablation)
 골든셋(문서 ID + 정답 문장)으로 BM25 / Dense / Sparse / Hybrid(RRF) / +Rerank / +MMR 을 같은 기준으로 잰다.
+
+체크리스트: docs/rag_checklist_rev10.xlsx → [P1_검색] S09~S12 · S15 평가
 """
 # %% [0] 준비 — 가장 먼저 실행
 import os, sys, importlib

@@ -1,7 +1,9 @@
 # -*- coding: utf-8 -*-
 """
-nb04 · Milvus 점검 — 체크리스트 S06 (버전 · 필터 필드 · 인덱스 · Oracle 과 건수 정합성) · S10-2 필터 동시 적용
+nb04 · Milvus 점검
 live 모드 전용. sample 모드에서는 어떤 표가 나오는지 모양만 보여 준다.
+
+체크리스트: docs/rag_checklist_rev10.xlsx → [P1_적재공통] S06 벡터DB · [P1_검색] S10 시맨틱 검색
 """
 # %% [0] 준비 — 가장 먼저 실행
 import os, sys, importlib

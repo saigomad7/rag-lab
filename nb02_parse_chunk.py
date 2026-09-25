@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 """
-nb02 · 파싱 · 청킹 · 임베딩 입력 점검 — 체크리스트 S02 파싱 · S03 청킹 · S04-1 max_length · 소스별 처리 흐름
+nb02 · 파싱 · 청킹 · 임베딩 입력 점검
+
+체크리스트: docs/rag_checklist_rev10.xlsx → [P1_적재공통] S02 파싱 · S03 청킹 · S04 임베딩
 """
 # %% [0] 준비 — 가장 먼저 실행
 import os, sys, importlib

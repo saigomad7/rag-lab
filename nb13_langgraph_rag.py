@@ -4,6 +4,8 @@ nb13 · LangGraph 기반 RAG — 노드 구성 → 실행 추적 → 프리셋�
   [1] 그래프 구성 확인  [2] 질문 1건 노드별 추적  [3] 프리셋 비교  [4] 증감(개선 정량화)
   [5] 최적 프리셋 고정 → 운영 설정으로
   Variable Explorer 확인 대상: st(상태) · tr(노드 추적) · summ(비교표) · dlt(증감) · detail
+
+기입 엑셀: archive/rag_project_log_rev1.xlsx → [5_실험이력] [6_프리셋비교]
 """
 # %% [0] 준비 — 가장 먼저 실행
 import os, sys, importlib
