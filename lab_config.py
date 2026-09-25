@@ -17,17 +17,29 @@ os.makedirs(OUT_DIR, exist_ok=True)
 
 
 def _load_env(path):
-    """python-dotenv 없이도 .env 를 읽는다. 이미 설정된 환경변수는 덮어쓰지 않는다."""
+    """
+    python-dotenv 없이 .env 를 읽는다.
+    첫 실행: 이미 있는 환경변수를 존중(setdefault) — 셸에서 준 값이 우선.
+    [0] 셀 재실행(reload): .env 값으로 덮어쓴다 — 파일을 고치고 다시 돌리면 반영되게.
+      (덮어쓰기가 없으면 Spyder 커널이 살아 있는 동안 옛 값이 계속 남는다)
+    """
     if not os.path.exists(path):
         return
-    with open(path, encoding='utf-8-sig') as f:        # 메모장 저장 시 붙는 BOM 제거
+    import sys as _sys
+    reloaded = getattr(_sys, '_lab_env_loaded', False)      # sys 는 reload 돼도 유지됨
+    with open(path, encoding='utf-8-sig') as f:             # 메모장 저장 시 붙는 BOM 제거
         for line in f:
             line = line.strip()
             if not line or line.startswith('#') or '=' not in line:
                 continue
             k, v = line.split('=', 1)
-            v = re.split(r'\s+#', v, 1)[0]             # 줄 끝 주석 제거:  KEY=값   # 설명
-            os.environ.setdefault(k.strip(), v.strip().strip('"').strip("'"))
+            v = re.split(r'\s+#', v, 1)[0]                  # 줄 끝 주석 제거:  KEY=값   # 설명
+            k, v = k.strip(), v.strip().strip('"').strip("'")
+            if reloaded:
+                os.environ[k] = v
+            else:
+                os.environ.setdefault(k, v)
+    _sys._lab_env_loaded = True
 
 
 _load_env(os.path.join(LAB_DIR, '.env'))

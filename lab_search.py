@@ -159,7 +159,14 @@ class Embedder:
         self.max_length = max_length or C.EMBED_MAX_LENGTH
         self.model = None
         if self.mode == 'local':
-            from FlagEmbedding import BGEM3FlagModel
+            try:
+                from FlagEmbedding import BGEM3FlagModel
+            except ImportError:
+                print('  ! FlagEmbedding 미설치 → 임베딩을 sample 로 대체합니다.\n'
+                      '    실제 임베딩을 쓰려면 .env 에  EMBED_MODE=api  + EMBED_URL · LLM_API_KEY 를 넣거나,\n'
+                      '    로컬 모델을 쓰려면  pip install FlagEmbedding  후 BGE_M3_PATH 를 지정하세요.')
+                self.mode = 'sample'
+                return
             self.model = BGEM3FlagModel(C.BGE_M3_PATH, use_fp16=_fp16())
 
     def encode(self, texts, batch_size=16):
@@ -204,7 +211,12 @@ class Reranker:
         self.mode = mode or C.RERANK_MODE
         self.model = None
         if self.mode == 'local':
-            from FlagEmbedding import FlagReranker
+            try:
+                from FlagEmbedding import FlagReranker
+            except ImportError:
+                print('  ! FlagEmbedding 미설치 → 리랭커를 sample 로 대체합니다. (.env 의 RERANK_MODE 확인)')
+                self.mode = 'sample'
+                return
             self.model = FlagReranker(C.RERANK_PATH, use_fp16=_fp16())
 
     def score(self, query, texts, batch_size=16):
