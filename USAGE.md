@@ -27,6 +27,26 @@ B 는 `.env.example` 하단의 `[개인 노트북 학습용]` 주석 블록을 �
 
 ---
 
+## 0-1. 소스 유형(카테고리) 바꾸기
+
+사내 분류가 다르면 **두 파일만** 고칩니다. 나머지(필수 메타 기준 · 정제 규칙 · 표기 · 청킹 기본값)는 따라옵니다.
+
+| 상황 | 고칠 곳 | 예 |
+|---|---|---|
+| 새 유형 추가 | `lab_sources.py` → `SOURCES` | `'SNS': dict(ko='SNS', group='외부', required=['org_name'], clean=dict(noise=[r'^RT\s@\S+']), chunk=dict(size=280))` — SNS 예시가 주석으로 들어 있음 |
+| 사내 코드가 다름 | `lab_config.py` → `DOC_TYPE_MAP` | `'SEC_RPT': 'BROKER'` |
+| 이름만 변경 | `lab_sources.py` | `SOURCES['BROKER']['ko'] = '리서치'` |
+| 쓰지 않음 | `lab_sources.py` | `SOURCES['MEETING']['enabled'] = False` |
+| 다른 유형에 흡수 | `lab_config.py` | `'MOM': 'EMAIL'` (회의록 → 메일) |
+| 필수 메타 기준 변경 | `lab_sources.py` → `required` | `SOURCES['NEWS']['required'] = ['org_name', 'src_url']` |
+| 정제 규칙 추가 | `lab_sources.py` → `clean.noise` | `noise=[r'^\[속보\]', r'^사진=.*']` |
+
+**확인**: `nb00` 의 `[1b]` 셀 — 유형 정의 표와 사내 코드 매핑 점검이 나옵니다.
+미정의 코드가 있으면 그 유형은 **필수 메타 · 정제 규칙이 적용되지 않은 채 통과**하므로 반드시 먼저 확인합니다.
+수정 후에는 `[0] 준비` 셀을 다시 실행해야 반영됩니다.
+
+---
+
 ## 1. 폴더 구성
 
 | 파일 | 역할 |
@@ -45,7 +65,8 @@ B 는 `.env.example` 하단의 `[개인 노트북 학습용]` 주석 블록을 �
 | `nb12_golden_llm.py` | **LLM 기반 골든셋 생성** — 코퍼스 표본 → 질문 · 정답 · 근거 생성 → 자가 검증 → 검수 시트 → 확정 |
 | `nb13_langgraph_rag.py` | **LangGraph RAG · 고도화** — 노드별 실행 추적 · 프리셋별 지표 비교 · 개선 폭 정량화 · 퇴행 문항 |
 | `nb10_answer_eval.py` | **답변 품질 정량 평가** — 표준 지표(Faithfulness · Answer Relevancy · Context Recall · Citation · Refusal 등) auto 계산 + 사내 LLM judge |
-| `lab_config.py` | 설정. **[사내 맞춤] 블록만 수정** |
+| `lab_config.py` | 설정 · 사내 코드 → 표준 코드 매핑(`DOC_TYPE_MAP`). **[사내 맞춤] 블록만 수정** |
+| `lab_sources.py` | **소스 유형 정의 단일 지점** — 이름 · 구분 · 필수 메타 · 정제 규칙 · 청킹 · 보안 등급 |
 | `lab_io.py` | Oracle 읽기 · 샘플 · 결과 저장 |
 | `lab_text.py` | 토큰 수, 소스별 정제 규칙, 점검 지표, 헤더, 근사 중복(MinHash) |
 | `lab_search.py` | 토크나이저, BM25, RRF, MMR, BGE-M3, 리랭커, Milvus, 기존 검색 API, 사내 LLM |

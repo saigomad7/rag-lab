@@ -8,6 +8,7 @@ import numpy as np
 import pandas as pd
 
 import lab_config as C
+import lab_sources
 
 # 단계별 합격 기준 — 사내 실정에 맞게 조정
 CRITERIA = {
@@ -23,16 +24,8 @@ CRITERIA = {
     'dup_body': 0.05,              # 본문 중복 비율 상한
 }
 
-# 소스 유형별 필수 메타 — 없는 항목은 수집 단계 보완 과제
-REQUIRED_META = {
-    'NEWS': ['title', 'published_at', 'org_name'],
-    'BROKER': ['title', 'published_at', 'org_name', 'author'],
-    'INSTITUTION': ['title', 'published_at', 'org_name'],
-    'EMAIL': ['title', 'published_at', 'author'],
-    'MEETING': ['title', 'published_at', 'org_name'],
-    'REPORT': ['title', 'published_at', 'org_name', 'author'],
-    'EXEC_REPORT': ['title', 'published_at', 'org_name'],
-}
+# 소스 유형별 필수 메타 — 정의는 lab_sources.SOURCES 에서 수정한다
+REQUIRED_META = lab_sources.required_map()
 
 _OK = lambda v, th, upper=False: ('합격' if (v <= th if upper else v >= th) else '미달')
 
@@ -74,7 +67,7 @@ def doc_integrity(raw):
 
 def meta_completeness(raw, required=None):
     """소스 유형별 필수 메타 충족률 — 부족 항목이 수집 · 파싱 보완 과제"""
-    required = required or REQUIRED_META
+    required = required or lab_sources.required_map()
     out = []
     for t, g in raw.groupby('doc_type'):
         cols = required.get(t, ['title', 'published_at'])

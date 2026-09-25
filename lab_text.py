@@ -10,6 +10,8 @@ import re
 import hashlib
 import numpy as np
 import pandas as pd
+
+import lab_sources
 import lab_config as C
 
 # ---------------- 토큰 수 ----------------
@@ -41,11 +43,11 @@ def count_tokens(text):
 
 
 # ---------------- 소스별 정제 규칙 ----------------
-NOISE = {
-    'NEWS': [r'무단\s*전재.*', r'재배포\s*금지.*', r'저작권자\s*ⓒ.*', r'^관련기사.*', r'^-\s.*', r'\S+@\S+\.\S+', r'^\S+\s기자\s*$'],
-    'BROKER': [r'Compliance Notice.*', r'본 자료는 투자 참고용.*', r'당사는 자료 작성일 현재.*'],
-    'INSTITUTION': [r'^목차$', r'.*\.{5,}\s*\d+\s*$'],
-}
+# 규칙 정의는 lab_sources.SOURCES[코드]['clean'] 에서 수정한다 (여기는 읽기만)
+def _noise(doc_type):
+    return lab_sources.noise(doc_type)
+
+
 EMAIL_CUT = [r'-{3,}\s*Original Message\s*-{3,}', r'^보낸 사람\s*:', r'^From\s*:', r'^-----.*원본 메시지']
 EMAIL_SIG = [r'^감사합니다\.?\s*$', r'.*\|\s*0\d{1,2}-\d{3,4}-\d{4}.*', r'.*\S+@\S+\.\S+.*', r'.*드림\s*$']
 EMAIL_DISCLAIMER = [r'본 메일은.*', r'This e-?mail.*confidential.*']
@@ -77,13 +79,14 @@ def clean_email(text):
 
 
 def clean(text, doc_type):
-    """소스 유형별 정제. 규칙이 없는 유형은 공백 정리만."""
+    """소스 유형별 정제 — 옵션 · 규칙은 lab_sources 에서 가져온다."""
     text = text or ''
-    if doc_type == 'EMAIL':
+    do_email, do_repeated = lab_sources.clean_opts(doc_type)
+    if do_email:
         text = clean_email(text)
-    if doc_type in ('BROKER', 'INSTITUTION', 'REPORT'):
+    if do_repeated:
         text = remove_repeated_lines(text)
-    for p in NOISE.get(doc_type, []):
+    for p in _noise(doc_type):
         text = re.sub(p, '', text, flags=re.M)
     text = re.sub(r'[ \t]+', ' ', text)
     text = re.sub(r'\n{3,}', '\n\n', text)
@@ -115,7 +118,8 @@ def table_suspect(text):
 
 def noise_left(text, doc_type):
     """정제 규칙에 걸리는 문구가 남아 있는지 (정제 전 점검)."""
-    pats = NOISE.get(doc_type, []) + (EMAIL_CUT + EMAIL_DISCLAIMER if doc_type == 'EMAIL' else [])
+    do_email, _ = lab_sources.clean_opts(doc_type)
+    pats = _noise(doc_type) + (EMAIL_CUT + EMAIL_DISCLAIMER if do_email else [])
     return any(re.search(p, text or '', flags=re.M) for p in pats)
 
 

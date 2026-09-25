@@ -219,7 +219,8 @@ MIX = [('NEWS', 32), ('BROKER', 18), ('INSTITUTION', 10), ('EMAIL', 14),
        ('MEETING', 8), ('REPORT', 12), ('EXEC_REPORT', 6)]     # 합 100
 PREFIX = {'NEWS': 'N', 'BROKER': 'B', 'INSTITUTION': 'I', 'EMAIL': 'E',
           'MEETING': 'M', 'REPORT': 'R', 'EXEC_REPORT': 'X'}
-SEC = {'NEWS': 0, 'BROKER': 0, 'INSTITUTION': 0, 'EMAIL': 2, 'MEETING': 2, 'REPORT': 2, 'EXEC_REPORT': 3}
+import lab_sources                                     # 보안 등급은 유형 정의에서
+SEC = {c: lab_sources.security(c) for c in PREFIX}
 
 
 # ---------------- 문서 생성 ----------------

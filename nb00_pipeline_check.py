@@ -16,8 +16,8 @@ os.chdir(LAB)
 import pandas as pd
 import lab_config as C
 importlib.reload(C)
-import lab_io, lab_pipeline
-for _m in (lab_io, lab_pipeline):
+import lab_io, lab_pipeline, lab_sources
+for _m in (lab_io, lab_pipeline, lab_sources):
     importlib.reload(_m)
 pd.set_option('display.width', 220); pd.set_option('display.max_columns', 40); pd.set_option('display.max_colwidth', 40)
 print(pd.Series(C.summary()).to_string())
@@ -27,6 +27,19 @@ raw = lab_io.load_raw(n=None if C.IS_SAMPLE else 20000)
 chunks = lab_io.load_chunks(n=None if C.IS_SAMPLE else 100000)
 print(f'문서 {len(raw):,} 건 · 청크 {len(chunks):,} 건 · 문서당 평균 {len(chunks) / max(len(raw), 1):.1f} 청크')
 print(raw.dtypes.to_string())
+
+# %% [1b] 소스 유형 정의 확인 — **사내 코드가 전부 매핑됐는가** (가장 먼저 볼 것)
+print('■ 현재 유형 정의 (수정: lab_sources.py 의 SOURCES)')
+print(lab_sources.table().to_string(index=False))
+chk = lab_sources.unmapped(raw)
+print('\n■ 사내 코드 매핑 점검 (수정: lab_config.DOC_TYPE_MAP)')
+print(chk.to_string(index=False))
+_bad = chk[chk.상태 != '정상']
+if len(_bad):
+    print('\n! 미정의 · 미사용 유형', len(_bad), '건 — 아래 조치 후 [1] 셀부터 다시 실행')
+    print(_bad[['사내_코드', '매핑_결과', '건수', '조치']].to_string(index=False))
+else:
+    print('\n모든 사내 코드가 정의된 유형으로 매핑됨')
 
 # %% [2] 소스 유형별 분포 — 수집 편중 · 기간 확인
 dist = lab_pipeline.type_distribution(raw, chunks)
