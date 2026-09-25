@@ -162,6 +162,8 @@ def _api_hint(what, url, model, r):
         403: '키 권한 · 지역 제한 확인',
         404: '주소 또는 모델 이름이 틀림',
         429: '호출 한도 초과 — 잠시 후 재시도',
+        500: '서비스 일시 오류 — 잠시 후 재시도',
+        503: '서비스 과부하 — 잠시 후 재시도 (.env 에 LLM_RPM=10 · LLM_RETRY=5)',
     }.get(r.status_code, '응답 본문을 확인')
     body = (r.text or '')[:300].replace('\n', ' ')
     if 'not found' in body.lower() or 'does not exist' in body.lower():
@@ -558,13 +560,48 @@ def build_context(results, meta=None, n=6):
     return '\n\n'.join(lines)
 
 
+_LLM_LAST = [0.0]          # 마지막 호출 시각 (LLM_RPM 제한용)
+RETRY_CODES = (429, 500, 502, 503, 504)
+
+
+def llm_call(prompt, temperature=0.0):
+    """
+    LLM 1회 호출 — 과부하(503) · 한도(429) · 일시 오류(5xx)는 대기 후 재시도.
+    무료 키는 .env 에 LLM_RPM=10 을 두면 호출 간격을 자동으로 벌린다.
+    """
+    import requests
+    wait = 10
+    for attempt in range(max(1, C.LLM_RETRY) + 1):
+        if C.LLM_RPM > 0:
+            gap = 60.0 / C.LLM_RPM
+            since = time.time() - _LLM_LAST[0]
+            if since < gap:
+                time.sleep(gap - since)
+        r = requests.post(C.LLM_URL, headers={'Authorization': f'Bearer {C.LLM_API_KEY}'},
+                          timeout=C.HTTP_TIMEOUT, verify=C.VERIFY_SSL,
+                          json={'model': C.LLM_MODEL, 'temperature': temperature,
+                                'messages': [{'role': 'user', 'content': prompt}]})
+        _LLM_LAST[0] = time.time()
+        if r.status_code in RETRY_CODES and attempt < C.LLM_RETRY:
+            m = re.search(r'retryDelay["\s:]+(\d+)', r.text or '')
+            sec = int(m.group(1)) if m else wait
+            why = '과부하' if r.status_code >= 500 else '한도 초과'
+            print(f'  LLM {why}({r.status_code}) — {sec}초 대기 후 재시도 {attempt + 1}/{C.LLM_RETRY}')
+            time.sleep(sec)
+            wait = min(wait * 2, 60)
+            continue
+        if r.status_code >= 400:
+            raise RuntimeError(_api_hint('LLM', C.LLM_URL, C.LLM_MODEL, r))
+        try:
+            return r.json()['choices'][0]['message']['content']
+        except Exception:
+            raise RuntimeError(f'LLM 응답 형식이 예상과 다릅니다: {(r.text or "")[:200]}')
+    raise RuntimeError(f'LLM 호출 실패 — {C.LLM_RETRY}회 재시도 후에도 응답 없음 '
+                       f'(.env 에 LLM_RPM=10 · LLM_RETRY=5 로 낮춰 보거나 잠시 후 재실행)')
+
+
 def llm_answer(question, results, meta=None, n=6, temperature=0.0):
     ctx = build_context(results, meta, n)
     if not C.LLM_URL or (C.IS_SAMPLE and not C.SAMPLE_MODELS):
         return f'(샘플 모드: LLM 미호출) 상위 청크 → {results.iloc[0]["text"][:60] if len(results) else "없음"} …'
-    import requests
-    r = requests.post(C.LLM_URL, headers={'Authorization': f'Bearer {C.LLM_API_KEY}'}, timeout=C.HTTP_TIMEOUT, verify=C.VERIFY_SSL,
-                      json={'model': C.LLM_MODEL, 'temperature': temperature,
-                            'messages': [{'role': 'user', 'content': PROMPT.format(context=ctx, question=question)}]})
-    r.raise_for_status()
-    return r.json()['choices'][0]['message']['content']
+    return llm_call(PROMPT.format(context=ctx, question=question), temperature)

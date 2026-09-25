@@ -93,6 +93,8 @@ EMBED_CACHE = env('EMBED_CACHE', 'true').lower() == 'true'   # 같은 문장은 
 LLM_URL = env('LLM_URL', '')                   # .../v1/chat/completions (OpenAI 호환)
 LLM_MODEL = env('LLM_MODEL', '')
 LLM_API_KEY = env('LLM_API_KEY', 'none')
+LLM_RPM = int(env('LLM_RPM', '0'))             # 분당 호출 수 제한 (0 = 제한 없음 · 무료 키는 10 권장)
+LLM_RETRY = int(env('LLM_RETRY', '3'))         # 429 · 5xx 재시도 횟수
 LLM_URL = _endpoint(LLM_URL, 'chat/completions')
 if not EMBED_API_KEY:
     EMBED_API_KEY = LLM_API_KEY

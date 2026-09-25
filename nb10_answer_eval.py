@@ -47,7 +47,11 @@ rows = []
 for g in gold.head(N_EVAL).itertuples():
     res = ret.search(g.question, 'hybrid+rerank+mmr', k=K, cand=50)
     ctx = res['text'].astype(str).tolist()
-    ans = lab_search.llm_answer(g.question, res, meta, n=K)
+    try:
+        ans = lab_search.llm_answer(g.question, res, meta, n=K)
+    except Exception as ex:                      # 한 문항 실패가 전체를 멈추지 않게
+        ans = f'(LLM 실패: {type(ex).__name__})'
+        print(f'  {g.qid} 건너뜀 — {str(ex).splitlines()[0][:80]}')
     rows.append(dict(qid=g.qid, question=g.question, q_type=g.q_type, answer=ans, contexts=ctx,
                      must_include=g.must_include, gold_text='', is_no_answer=(g.q_type == '답없음'),
                      top_docs=';'.join(res['doc_id'].astype(str).head(3))))
