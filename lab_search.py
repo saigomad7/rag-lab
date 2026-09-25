@@ -157,10 +157,13 @@ def _api_hint(what, url, model, r):
         400: '요청 형식 · 모델 이름 확인',
         401: 'API 키가 없거나 잘못됨 — .env 의 LLM_API_KEY (또는 EMBED_API_KEY) 확인',
         403: '키 권한 · 지역 제한 확인',
-        404: '주소가 틀림 — 끝까지 적었는지 확인 (예: .../v1/embeddings, .../v1beta/openai/embeddings)',
+        404: '주소 또는 모델 이름이 틀림',
         429: '호출 한도 초과 — 잠시 후 재시도',
     }.get(r.status_code, '응답 본문을 확인')
     body = (r.text or '')[:300].replace('\n', ' ')
+    if 'not found' in body.lower() or 'does not exist' in body.lower():
+        tip = (f'모델 이름 확인 — .env 의 EMBED_MODEL 이 이 서비스에 없는 이름입니다 (현재 "{model}")\n'
+               '         OpenAI: text-embedding-3-small · 구글: text-embedding-004 · 사내 BGE: bge-m3')
     return (f'{what} API 실패 [{r.status_code}] {tip}\n'
             f'  URL   : {url}\n'
             f'  모델   : {model}\n'
