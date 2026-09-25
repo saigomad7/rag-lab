@@ -168,3 +168,29 @@ def near_duplicates(df, text_col='body', id_col='doc_id', threshold=0.8, bands=1
     out = [(x, y, float((sigs[x] == sigs[y]).mean())) for x, y in cand]
     res = pd.DataFrame(out, columns=['id_a', 'id_b', 'similarity'])
     return res[res.similarity >= threshold].sort_values('similarity', ascending=False).reset_index(drop=True)
+
+
+# ---------------- 유형별 청킹 (lab_sources.chunk 기준 사용) ----------------
+def chunk_text(text, doc_type):
+    """
+    유형별 목표 크기로 문단 경계 분할. lab_sources.SOURCES[코드]['chunk'] 를 그대로 따른다.
+      size  : 목표 글자 수
+      table : True 면 표(| 로 시작하는 줄 묶음)를 별도 청크로 분리
+    """
+    size, keep_table = lab_sources.chunk_opts(doc_type)
+    if not str(text or '').strip():
+        return []
+    parts, buf = [], ''
+    for para in str(text).split('\n\n'):
+        is_table = para.lstrip().startswith('|')
+        if keep_table and is_table:
+            if buf.strip():
+                parts.append(buf.strip()); buf = ''
+            parts.append(para.strip()); continue
+        if len(buf) + len(para) > size and buf.strip():
+            parts.append(buf.strip()); buf = para
+        else:
+            buf = (buf + '\n\n' + para) if buf else para
+    if buf.strip():
+        parts.append(buf.strip())
+    return parts

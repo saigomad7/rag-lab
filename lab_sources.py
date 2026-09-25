@@ -13,11 +13,27 @@
   2) lab_config.DOC_TYPE_MAP 에 **사내 코드 → 여기 코드** 매핑
   3) nb00 [1b] 셀에서 미매핑 코드가 없는지 확인
 
-예)
-  · 사내에 SNS 가 있다        → SOURCES 에 'SNS' 추가 (아래 주석 해제)
-  · 증권사 코드가 'SEC_RPT'   → lab_config.DOC_TYPE_MAP 에 {'SEC_RPT': 'BROKER'}
-  · 회의록을 안 쓴다           → SOURCES['MEETING']['enabled'] = False
-  · 회의록이 메일에 섞여 있다   → DOC_TYPE_MAP 에 {'MEETING_MEMO': 'EMAIL'} 로 흡수
+자주 하는 세 가지
+  [추가] 없던 유형을 넣는다
+      SOURCES['SNS'] = dict(ko='SNS', group='외부', enabled=True, security=0,
+                            required=['org_name'],
+                            clean=dict(email=False, repeated=False, noise=[r'^RT\s@\S+']),
+                            chunk=dict(size=280, table=False))
+      또는  lab_sources.add('SNS', 'SNS', group='외부', required=['org_name'], size=280)
+      → 사내 코드가 다르면 lab_config.DOC_TYPE_MAP 에 {'SNS_POST': 'SNS'} 추가
+
+  [수정] 있는 유형의 기준을 바꾼다  (무엇을 바꿔도 모든 점검 · 표기에 즉시 반영)
+      SOURCES['NEWS']['ko'] = '뉴스기사'                       # 표기 이름
+      SOURCES['NEWS']['required'] = ['org_name', 'src_url']     # 필수 메타
+      SOURCES['NEWS']['clean']['noise'] += [r'^\[속보\]']       # 정제 규칙
+      SOURCES['NEWS']['chunk'] = dict(size=250, table=False)    # 청킹 기준
+      SOURCES['NEWS']['security'] = 1                           # 보안 등급
+
+  [미사용] 쓰지 않는 유형을 뺀다
+      SOURCES['MEETING']['enabled'] = False      # 정의는 남기고 판정에서만 제외
+      → 다른 유형으로 흡수하려면 DOC_TYPE_MAP 에 {'MOM': 'EMAIL'}
+
+수정 후에는 Spyder 에서 [0] 준비 셀을 다시 실행한다 (reload 포함).
 """
 
 # 공통 필수 메타 — 모든 유형에 적용

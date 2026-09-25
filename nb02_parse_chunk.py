@@ -14,7 +14,7 @@ os.chdir(LAB)
 import pandas as pd
 import lab_config as C
 importlib.reload(C)
-import lab_io, lab_text, lab_search, lab_eval
+import lab_io, lab_text, lab_sources, lab_search, lab_eval
 for _m in (lab_io, lab_text, lab_search, lab_eval):
     importlib.reload(_m)
 pd.set_option('display.width', 200); pd.set_option('display.max_columns', 30); pd.set_option('display.max_colwidth', 60)
@@ -74,3 +74,18 @@ print(header_preview[['doc_id', 'header']].head(12).to_string(index=False))
 for _df, _n in ((chunk_stats.reset_index(), 'nb02_chunk_stats'), (chunk_quality.reset_index(), 'nb02_chunk_quality'),
                 (clean_cmp.reset_index(), 'nb02_clean_cmp'), (header_preview, 'nb02_header_preview')):
     lab_io.save(_df, _n)
+
+# %% [+] 유형별 청킹 기준 대비 — lab_sources.SOURCES[코드]['chunk'] 를 바꾸면 여기 값이 바뀐다
+import lab_sources
+importlib.reload(lab_sources)
+rows = []
+for t, g in raw_s.groupby('doc_type'):
+    base, tbl = lab_sources.chunk_opts(t)
+    now = ch[ch.doc_type == t]['text'].astype(str).str.len()
+    re_ch = [len(c) for b in g['body'] for c in lab_text.chunk_text(b, t)]
+    rows.append(dict(소스=lab_sources.ko(t), 기준_글자=base, 표_분리=('O' if tbl else 'X'),
+                     현재_청크수=len(now), 현재_중앙=int(now.median()) if len(now) else 0,
+                     기준적용시_청크수=len(re_ch), 기준적용시_중앙=int(pd.Series(re_ch).median()) if re_ch else 0))
+rechunk = pd.DataFrame(rows)
+print(rechunk.to_string(index=False))
+print('\n현재 청크가 기준과 크게 다르면 → 적재 파이프라인의 청킹 설정을 기준에 맞추거나, 기준을 실제에 맞게 수정')
