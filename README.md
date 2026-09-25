@@ -4,7 +4,7 @@ Oracle(원문·청크) → BGE-M3 → Milvus → 하이브리드 검색(BM25 + D
 **현재 상태를 측정하고 단계별로 비교**하기 위한 점검 코드입니다.
 
 - **Windows + Spyder** 에서 Jupyter처럼 `# %%` 셀 단위로 실행하고, 결과는 변수 탐색기(Variable Explorer)의 DataFrame으로 봅니다.
-- `LAB_MODE=sample` 이면 DB · Milvus · 모델 없이 가짜 샘플 데이터로 모든 셀이 돕니다. 샘플 데이터와 수치는 모두 지어낸 예시입니다.
+- `LAB_MODE=sample` 이면 DB · Milvus · 모델 없이 가짜 샘플 데이터로 모든 셀이 돕니다. `SAMPLE_SET=100` 으로 100건 규모 전환. 샘플 데이터와 수치는 모두 지어낸 예시입니다.
 - 사내에서는 `.env`와 `lab_config.py`의 **[사내 맞춤]** 블록만 고쳐 `LAB_MODE=live`로 씁니다. DB에는 SELECT만 합니다.
 
 | 노트북 | 점검 내용 |

@@ -55,8 +55,7 @@ else:
 RUN_ID, SETTING = 'RUN-001', '기준선(현행)'
 golden = lab_io.read_table(os.path.join(C.GOLDEN_DIR, 'golden_v1.csv')) if os.path.exists(os.path.join(C.GOLDEN_DIR, 'golden_v1.csv')) else None
 if golden is None or not len(golden):
-    import lab_sample
-    golden = lab_sample.golden() if C.IS_SAMPLE else pd.DataFrame()
+    golden = lab_io.sample_mod().golden() if C.IS_SAMPLE else pd.DataFrame()
     print('(골든셋 파일 없음 → 샘플 골든셋 사용)')
 golden = golden.fillna('')
 ret = lab_search.Retriever(chunks, bm25_tokenizer='kiwi')

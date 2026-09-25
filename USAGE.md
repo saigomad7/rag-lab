@@ -15,6 +15,7 @@ Spyder에서 셀 단위로 실행하고, 결과는 **Variable Explorer**의 Data
 
 | 방법 | `.env` 설정 | 결과 |
 |---|---|---|
+| 데이터 규모 | `SAMPLE_SET=100` | 샘플 문서 **100건 · 청크 182 · 골든셋 30문항** (기본 16건은 지표가 전부 1.0 으로 붙어 비교가 안 됨) |
 | A. 구조 파악 | `LAB_MODE=sample` (기본) | 검색·지표·표 구조 확인. **답변·골든셋 생성은 stub** |
 | B. 실제 동작 (권장) | `LAB_MODE=sample` + `SAMPLE_MODELS=true` + `EMBED_MODE=api` + `LLM_URL` | 샘플 문서 + **실제 임베딩·LLM 호출** → nb12·nb10·nb13 이 진짜로 동작 |
 
@@ -49,7 +50,8 @@ B 는 `.env.example` 하단의 `[개인 노트북 학습용]` 주석 블록을 �
 | `lab_text.py` | 토큰 수, 소스별 정제 규칙, 점검 지표, 헤더, 근사 중복(MinHash) |
 | `lab_search.py` | 토크나이저, BM25, RRF, MMR, BGE-M3, 리랭커, Milvus, 기존 검색 API, 사내 LLM |
 | `lab_eval.py` | 적중 판정 · Hit/Recall/MRR/nDCG · 스모크 표 |
-| `lab_sample.py` | 샘플 데이터 (sample 모드 전용) |
+| `lab_sample.py` | 샘플 데이터 16건 (sample 모드 기본) |
+| `lab_sample100.py` | **확장 샘플 100건** — 소스 7종 · 6개월 · 품질 결함 포함 · 골든셋 30문항 (`SAMPLE_SET=100`) |
 | `lab_sql.py` | 카탈로그 읽기 · 라우팅 · SQL 생성/검증/실행 · 실행결과 정확도 |
 | `lab_sample_sql.py` | 샘플 정형 DB(SQLite) · 정형 골든셋 (sample 모드 전용) |
 | `lab_autoeval.py` | 평가셋 자동 생성 · 합격 기준(CRITERIA) · 표본 오차 |

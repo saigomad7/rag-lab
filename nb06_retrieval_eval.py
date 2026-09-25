@@ -22,8 +22,7 @@ pd.set_option('display.width', 200); pd.set_option('display.max_columns', 30); p
 
 # %% [1] 골든셋 — golden/golden_v1.csv (qid, question, q_type, source, gold_doc_ids, gold_text)
 if C.IS_SAMPLE:
-    import lab_sample
-    golden = lab_sample.golden()
+    golden = lab_io.sample_mod().golden()
 else:
     golden = lab_io.read_table(os.path.join(C.GOLDEN_DIR, 'golden_v1.csv'))
 golden = golden.fillna('')

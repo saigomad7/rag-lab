@@ -11,6 +11,12 @@ import lab_config as C
 _conn = None
 
 
+def sample_mod():
+    """샘플 데이터 모듈 — SAMPLE_SET 값으로 16건 / 100건 선택"""
+    import importlib
+    return importlib.import_module('lab_sample100' if str(C.SAMPLE_SET) == '100' else 'lab_sample')
+
+
 def connect():
     """Oracle 연결 (한 번 만들고 재사용). thin 모드 기본, ORA_THICK_LIB 있으면 thick."""
     global _conn
@@ -59,8 +65,7 @@ def _std_types(df):
 def load_raw(n=None, where=None, sample_pct=None):
     """원문 문서. n: 최대 행 수, where: SQL 조건(예: "DOC_TYPE='EMAIL'"), sample_pct: 테이블 표본 %."""
     if C.IS_SAMPLE:
-        import lab_sample
-        df = lab_sample.raw_docs()
+        df = sample_mod().raw_docs()
         return df.head(n) if n else df
     return _std_types(read_sql(_select(C.RAW, n, where, sample_pct)))
 
@@ -68,8 +73,7 @@ def load_raw(n=None, where=None, sample_pct=None):
 def load_chunks(n=None, where=None, doc_ids=None, sample_pct=None):
     """청크. doc_ids 를 주면 해당 문서의 청크만 (1000개씩 나눠 조회)."""
     if C.IS_SAMPLE:
-        import lab_sample
-        df = lab_sample.chunks()
+        df = sample_mod().chunks()
         if doc_ids is not None:
             df = df[df.doc_id.isin(list(doc_ids))]
         return df.head(n) if n else df
